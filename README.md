@@ -5,4 +5,4 @@ vivado 2018.3
 main source code in /src/new  
 
 
-please ignore /src/d temporarily
+please ignore '/src/bd_design1' temporarily
