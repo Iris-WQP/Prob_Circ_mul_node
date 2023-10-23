@@ -52,7 +52,7 @@ module mul_3_stage_pipe(
           z_finish <= 0;
           if (input_mul_stb) begin
               a_m <= {1'b1,input_mul[(22+32):32]};
-              b_m <= {1'b1,input_mul[22:0]};  //ÈÚºÏÁËspecial caseÀïµÄÎ²ÊýÇ°²¹1
+              b_m <= {1'b1,input_mul[22:0]};  //ï¿½Úºï¿½ï¿½ï¿½special caseï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î²ï¿½ï¿½Ç°ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½Ë·ï¿½
               a_e <= input_mul[(30+32):(23+32)] - 127;
               b_e <= input_mul[30:23] - 127;
               a_s <= input_mul[31+32];
@@ -60,7 +60,7 @@ module mul_3_stage_pipe(
               s_input_mul_ack <= 0;
         end
 
-/*----------------------------- stage2:special case and multiple --------------------------------*/
+/*----------------------------- stage2:special case and multiplication --------------------------------*/
         //if a is NaN or b is NaN return NaN 
         if ((a_e == 128 && a_m[22:0] != 0) || (b_e == 128 && b_m[22:0] != 0)) begin
           z_s <= 1;
@@ -117,13 +117,13 @@ module mul_3_stage_pipe(
 /*----------------------------- stage3:round and pack --------------------------------*/
       z [31] <= z_s;
       
-      if(z_finish==0)begin   //³ËÊý·ÇÌØÊâÇé¿ö
+      if(z_finish==0)begin   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         if ($signed(z_e) < -126) begin //subnormal
           z <= 32'd0;
-        end else if (z_m[23] == 0) begin //ÕûÊý²¿·Ö²»Âú1
+        end else if (z_m[23] == 0) begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½1
           if (guard && (sticky | z_m[0])) begin //round
           z[22:0] <= (z_m << 1) + 1;
-              if (z_m == 23'h8fffff) begin
+              if (z_m == 24'h8fffff) begin
                 z[30:23] <= z_e + 1 + 127;
               end else begin
                 z[30:23] <= z_e + 127;
@@ -132,11 +132,11 @@ module mul_3_stage_pipe(
           z[22:0] <= z_m << 1;
           z[30:23] <= z_e + 127;
           end
-        end else begin //ÕûÊý²¿·ÖÂú1£¨Õý³£Çé¿ö£©
+        end else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
           if (guard && (sticky | z_m[0])) begin //round
           z[22:0] <= z_m + 1;     //z[22 : 0] <= z_m[22:0];
              if (z_m == 24'hffffff) begin 
-                //Èç¹ûz_mÔ½½ç£¬z_m+1±äÈ«Áã£¬z_e+1ºÏÀí
+                //ï¿½ï¿½ï¿½z_mÔ½ï¿½ç£¬z_m+1ï¿½ï¿½È«ï¿½ã£¬z_e+1ï¿½ï¿½ï¿½ï¿½
                 z[30 : 23] <= z_e + 1 + 127; //z[30 : 23] <= z_e[7:0] + 127;
              end else begin
                 z[30 : 23] <= z_e + 127; 
@@ -148,11 +148,11 @@ module mul_3_stage_pipe(
         end
       end
       
-      else begin //³ËÊýÊÇÌØÊâÇé¿ö
+      else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
          z[22:0]  <= z_m[22:0];
          z[30:23] <= z_e;
       end
-/*-------------------- valid ÐÅºÅ¿ØÖÆ ---------------------*/
+/*-------------------- valid ï¿½ÅºÅ¿ï¿½ï¿½ï¿½ ---------------------*/
      if (rst == 1) begin
       s_input_mul_ack <= 1'b0;
       stage2_valid <= 1'b0;
@@ -169,6 +169,6 @@ end
 
 
 
-//ÎÊÌâÔÚÓÚ£¬ÎÕÊÖÐÅºÅÖÁÉÙÐèÒªÁ½¸öÖÜÆÚ£¬ÎÕÊÖÐÅºÅ×èµ²ÁËÊý¾Ý´«µÝ
+//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åºï¿½ï¿½èµ²ï¿½ï¿½ï¿½ï¿½ï¿½Ý´ï¿½ï¿½ï¿½
 
 endmodule
