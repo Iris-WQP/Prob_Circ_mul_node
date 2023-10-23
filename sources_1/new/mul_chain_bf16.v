@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module mul_chain(
+module mul_chain_bf16(
         input clk,
         input rst,
         input [(6*32-1):0] mul_ins, 
@@ -48,7 +48,7 @@ genvar n;
 generate  //��������Device Under Test
     for(n=0;n<6;n=n+1)
     begin:dut
-        mul_3_stage_pipe u_mul_3_stage_pipe
+        mul_3_stage_pipe_bf16 u_mul_3_stage_pipe_bf16
 (
         .input_mul(input_apply[n]),          //inputa[31:16] inputb[15:0]
         .input_mul_stb(mul_stb),  

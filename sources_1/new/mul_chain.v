@@ -19,7 +19,7 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-module mul_chain(
+module mul_chain_bf16(
         input clk,
         input rst,
         input [(6*64-1):0] mul_ins, 

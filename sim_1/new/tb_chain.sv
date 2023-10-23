@@ -67,10 +67,10 @@ end
   wire   [5:0] wire_o_stb;
   reg [1:0] mode;
 
-  mul_chain dut(
+  mul_chain_bf16 dut(
         .clk(clk),
         .rst(rst),
-        .mul_ins(mul_in),          //inputa[63:32] inputb[31:0]
+        .mul_ins(mul_in[31:0]),          //inputa[63:32] inputb[31:0]
         .mul_stb(mul_stb),  
         .mode (mode),
         .outputs(wire_o),
