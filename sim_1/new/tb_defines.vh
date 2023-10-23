@@ -1,0 +1,1 @@
+`define DW 16     //BF16

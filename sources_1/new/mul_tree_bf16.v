@@ -22,11 +22,11 @@
 module mul_tree_bf16(
         input clk,
         input rst,
-        input [(4*16-1):0] mul_ins, 
+        input [(4*32-1):0] mul_ins, 
         input mul_stb,
         input [1:0] mode,
         output reg [(4*16-1):0] outputs,
-        output reg [3:0] final_output_stbs
+        output reg [3:0] final_output_stbs_1
     );
 
         //mode00 ---- two inputs
@@ -39,28 +39,32 @@ module mul_tree_bf16(
             three_in   = 2'd1, //put b
             four_in    = 2'd2, 
             six_in     = 2'd3;
-
-wire [16:0] input_apply [6:0];
+            
+ reg [3:0] final_output_stbs;
+wire [31:0] input_apply [6:0];
 wire [6:0] org_output_stbs;
 wire [15:0] org_outputs [6:0]; 
 
+wire  mul_stbs [6:0];
+reg mul_stbs_0_1_2_3;
+reg mul_stbs_4_5;
+reg mul_stbs_6;
 
-genvar n;
-generate  //��������Device Under Test
-    for(n=0;n<7;n=n+1)
-    begin:dut
-        mul_3_stage_pipe_bf16 u_mul_3_stage_pipe_bf16
-(
-        .input_mul(input_apply[n]),          //inputa[31:16] inputb[15:0]
-        .input_mul_stb(mul_stb),  
-        .s_input_mul_ack(),        //pipelineģʽ��ackʼ��Ϊ1, ��ɾ
-        .clk(clk),
-        .rst(rst),
-        .z(org_outputs[n]),
-        .s_output_z_stb(org_output_stbs[n])      //output z valid
-);
-    end
-endgenerate
+
+assign mul_stbs[0] = mul_stbs_0_1_2_3;
+assign mul_stbs[1] = mul_stbs_0_1_2_3;
+assign mul_stbs[2] = mul_stbs_0_1_2_3;
+assign mul_stbs[3] = mul_stbs_0_1_2_3;
+assign mul_stbs[4] = mul_stbs_4_5;
+assign mul_stbs[5] = mul_stbs_4_5;
+assign mul_stbs[6] = mul_stbs_6;
+
+always@(posedge clk)begin
+    mul_stbs_0_1_2_3 <= mul_stb;
+    mul_stbs_4_5 <= org_output_stbs[0];
+    mul_stbs_6 <= org_output_stbs[4];
+    final_output_stbs_1 <= final_output_stbs;
+end
 
 
 assign input_apply[0] = mul_ins[31:0];
@@ -88,5 +92,22 @@ always @(*)   begin
          outputs = {48'd0, org_outputs[6]};
      end
 end
+
+genvar n;
+generate  //Device Under Test
+    for(n=0;n<7;n=n+1)
+    begin:dut
+        mul_3_stage_pipe_bf16 u_mul_3_stage_pipe_bf16
+(
+        .input_mul(input_apply[n]),          //inputa[31:16] inputb[15:0]
+        .input_mul_stb(mul_stbs[n]),  
+        .s_input_mul_ack(),        //pipeline--ack==1
+        .clk(clk),
+        .rst(rst),
+        .z(org_outputs[n]),
+        .s_output_z_stb(org_output_stbs[n])      //output z valid
+);
+    end
+endgenerate
          
 endmodule

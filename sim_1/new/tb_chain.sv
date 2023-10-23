@@ -18,14 +18,14 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
+`include "tb_defines.vh"
 module tb_chain();
 
   reg  clk;
   reg  rst;
   reg   mul_stb;
   reg [(64*6-1):0] memory[15:0];
-  reg [(64*6-1):0] mul_in;
+  reg [(`DW*2*6-1):0] mul_in;
   int i;
   
 initial begin
@@ -63,14 +63,14 @@ end
   end
 
 
-  wire   [(6*32-1):0] wire_o;
+  wire   [(6*`DW-1):0] wire_o;
   wire   [5:0] wire_o_stb;
   reg [1:0] mode;
 
   mul_chain_bf16 dut(
         .clk(clk),
         .rst(rst),
-        .mul_ins(mul_in[31:0]),          //inputa[63:32] inputb[31:0]
+        .mul_ins(mul_in),        
         .mul_stb(mul_stb),  
         .mode (mode),
         .outputs(wire_o),

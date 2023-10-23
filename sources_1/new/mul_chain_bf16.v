@@ -28,7 +28,6 @@ module mul_chain_bf16(
         output [(6*16-1):0] outputs,
         output reg [5:0] final_output_stbs
     );
-        //����������´������������ʱ��һ���˷����˷ѣ����ܳ�Ϊƿ��
         //mode00 ---- two inputs
         //mode01 ---- three inputs
         //mode10 ---- four inputs
@@ -52,10 +51,10 @@ generate  //��������Device Under Test
 (
         .input_mul(input_apply[n]),          //inputa[31:16] inputb[15:0]
         .input_mul_stb(mul_stb),  
-        .s_input_mul_ack(),        //pipelineģʽ��ackʼ��Ϊ1, ��ɾ
+        .s_input_mul_ack(),        //pipeline--always 1
         .clk(clk),
         .rst(rst),
-        .z(outputs[(32*(n+1)-1):32*n]),
+        .z(outputs[(16*(n+1)-1):16*n]),
         .s_output_z_stb(output_stbs[n])      //output z valid
 );
     end

@@ -18,23 +18,23 @@
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
-
 module tb_tree();
 
   reg  clk;
   reg  rst;
   reg   mul_stb;
   reg [(64*6-1):0] memory[15:0]; //·½±ã¶ÁÊý
-  reg [(64*4-1):0] mul_in;
+  reg [(32*4-1):0] mul_in;
   int i;
   
 initial begin
   $readmemb("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_chain.txt",memory);
   i = 0;
+  mul_stb = 0;
   #45;
   repeat(16)begin
        begin
-        mul_in = memory[i][(64*4-1):0];
+        mul_in = memory[i][(32*4-1):0];
         mul_stb = 1;
        end
        #10 i=i+1;
@@ -44,6 +44,7 @@ end
   initial
   begin
     rst <= 1'b1;
+    
     #50 rst <= 1'b0;
   end
 
@@ -63,25 +64,25 @@ end
   end
 
 
-  wire   [(4*32-1):0] wire_o;
+  wire   [(4*`DW-1):0] wire_o;
   wire   [3:0] wire_o_stb;
   reg [1:0] mode;
 
-  mul_tree dut(
+  mul_tree_bf16 dut(
         .clk(clk),
         .rst(rst),
-        .mul_ins(mul_in),          //inputa[63:32] inputb[31:0]
+        .mul_ins(mul_in),        
         .mul_stb(mul_stb),  
         .mode (mode),
         .outputs(wire_o),
-        .final_output_stbs(wire_o_stb)      //output z valid
+        .final_output_stbs_1(wire_o_stb)      //output z valid
   );
     
   
   initial
   begin
     rst <= 1'b1;
-    mode <= 2'b11;
+    mode <= 2'b00;
     #50 rst <= 1'b0;
   end
 
