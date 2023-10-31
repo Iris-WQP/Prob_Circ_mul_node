@@ -44,7 +44,7 @@ wire [5:0] output_stbs;
 
 
 genvar n;
-generate  //��������Device Under Test
+generate  //Device Under Test
     for(n=0;n<6;n=n+1)
     begin:dut
         mul_3_stage_pipe_bf16 u_mul_3_stage_pipe_bf16
