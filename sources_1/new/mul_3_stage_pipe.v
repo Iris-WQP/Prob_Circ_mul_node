@@ -52,7 +52,7 @@ module mul_3_stage_pipe(
           z_finish <= 0;
           if (input_mul_stb) begin
               a_m <= {1'b1,input_mul[(22+32):32]};
-              b_m <= {1'b1,input_mul[22:0]};  //�ں���special case����������β��ǰ��1�����˷�
+              b_m <= {1'b1,input_mul[22:0]};  
               a_e <= input_mul[(30+32):(23+32)] - 127;
               b_e <= input_mul[30:23] - 127;
               a_s <= input_mul[31+32];
@@ -152,7 +152,7 @@ module mul_3_stage_pipe(
          z[22:0]  <= z_m[22:0];
          z[30:23] <= z_e;
       end
-/*-------------------- valid �źſ��� ---------------------*/
+/*-------------------- valid signals ---------------------*/
      if (rst == 1) begin
       s_input_mul_ack <= 1'b0;
       stage2_valid <= 1'b0;
