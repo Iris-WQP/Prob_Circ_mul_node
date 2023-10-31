@@ -117,10 +117,10 @@ module mul_3_stage_pipe(
 /*----------------------------- stage3:round and pack --------------------------------*/
       z [31] <= z_s;
       
-      if(z_finish==0)begin   //�������������
-        if ($signed(z_e) < -126) begin //subnormal
+      if(z_finish==0)begin   //normal case
+        if ($signed(z_e) < -126) begin //output subnormal
           z <= 32'd0;
-        end else if (z_m[23] == 0) begin //�������ֲ���1
+        end else if (z_m[23] == 0) begin //need add 1 
           if (guard && (sticky | z_m[0])) begin //round
           z[22:0] <= (z_m << 1) + 1;
               if (z_m == 24'h8fffff) begin
@@ -132,23 +132,23 @@ module mul_3_stage_pipe(
           z[22:0] <= z_m << 1;
           z[30:23] <= z_e + 127;
           end
-        end else begin //����������1�����������
-          if (guard && (sticky | z_m[0])) begin //round
+        end else begin //no need add 1, just round
+          if (guard && (sticky | z_m[0])) begin //carry bit
           z[22:0] <= z_m + 1;     //z[22 : 0] <= z_m[22:0];
              if (z_m == 24'hffffff) begin 
-                //���z_mԽ�磬z_m+1��ȫ�㣬z_e+1����
+                //z_m->z_m+1, lower z_m become 0; z_e+1
                 z[30 : 23] <= z_e + 1 + 127; //z[30 : 23] <= z_e[7:0] + 127;
              end else begin
                 z[30 : 23] <= z_e + 127; 
              end           
-          end else begin
+          end else begin //no carry bit
           z[22:0] <= z_m;  
           z[30 : 23] <= z_e + 127; 
           end
         end
       end
       
-      else begin //�������������
+      else begin // special case
          z[22:0]  <= z_m[22:0];
          z[30:23] <= z_e;
       end
