@@ -19,13 +19,37 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 module tb_tree();
-
+  wire [(4*`DW-1):0] wire_o;
+  wire [3:0] wire_o_stb;
+  reg  [1:0] mode;
   reg  clk;
   reg  rst;
   reg   mul_stb;
-  reg [(64*6-1):0] memory[15:0]; //·½±ã¶ÁÊý
+  reg [(64*6-1):0] memory[15:0];
   reg [(32*4-1):0] mul_in;
   int i;
+  int f_in;
+  int f_out;
+  
+initial begin
+    f_out = $fopen("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_outputs.txt","w");
+    #70;
+    repeat(16)begin
+        #10;
+        $fdisplay(f_out,"%h", wire_o);
+    end
+    $fclose(f_out);
+end
+
+initial begin
+    f_in = $fopen("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_inputs.txt","w");
+    #40;
+    repeat(16)begin
+        #10;
+        $fdisplay(f_in, "%h", mul_in);
+    end
+    $fclose(f_in);
+end
   
 initial begin
   $readmemb("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_chain.txt",memory);
@@ -64,9 +88,7 @@ end
   end
 
 
-  wire   [(4*`DW-1):0] wire_o;
-  wire   [3:0] wire_o_stb;
-  reg [1:0] mode;
+
 
   mul_tree_bf16 dut(
         .clk(clk),
@@ -103,5 +125,3 @@ end
     
     
 endmodule
-
-
