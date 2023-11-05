@@ -32,7 +32,7 @@ module tb_tree();
   int f_out;
   
 initial begin
-    f_out = $fopen("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_outputs.txt","w");
+    f_out = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_outputs.txt","w");
     #70;
     repeat(16)begin
         #10;
@@ -42,7 +42,7 @@ initial begin
 end
 
 initial begin
-    f_in = $fopen("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_inputs.txt","w");
+    f_in = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_inputs.txt","w");
     #40;
     repeat(16)begin
         #10;
