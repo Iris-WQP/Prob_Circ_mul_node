@@ -26,6 +26,8 @@ module mul_3_stage_pipe_bf16(
         input rst,
         output reg [15:0] z,
         output s_output_z_stb      //output z valid
+        
+
         );
   
   reg       [7:0] a_m, b_m, z_m; //BF16, 7bits for mantissa, 1bits for covering 1
@@ -51,7 +53,7 @@ module mul_3_stage_pipe_bf16(
           z_finish <= 0;
           if (input_mul_stb) begin
               a_m <= {1'b1,input_mul[(6+16):16]};
-              b_m <= {1'b1,input_mul[6:0]};  //ï¿½Úºï¿½ï¿½ï¿½special caseï¿½ï¿½ï¿½Î²ï¿½ï¿½Ç°ï¿½ï¿½1
+              b_m <= {1'b1,input_mul[6:0]};  //ï¿½Úºï¿½ï¿½ï¿½special caseï¿½ï¿½ï¿½Î²ï¿½ï¿½Ç°ï¿½ï¿?1
               a_e <= input_mul[(14+16):(7+16)] - 127;
               b_e <= input_mul[14:7] - 127;
               a_s <= input_mul[15+16];
@@ -115,22 +117,24 @@ module mul_3_stage_pipe_bf16(
 /*----------------------------- stage3:round and pack --------------------------------*/
       z [15] <= z_s;
       
-      if(z_finish==0)begin   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-        if ($signed(z_e) < -126) begin //subnormal
-          z <= 16'd0;
+      if(z_finish==0)begin   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
+        if ($signed(z_e) < -125) begin //subnormal
+          z[14:0] <= 15'd0;
+        end else if ($signed(z_e) > 126)begin
+          z[14:0] <= 15'b111111110000000;
         end else if (z_m[7] == 0) begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½1
           if (guard && (sticky | z_m[0])) begin //round
           z[6:0] <= (z_m << 1) + 1;
               if (z_m == 8'h8f) begin
-                z[14:7] <= z_e + 1 + 127;
+                z[14:7] <= z_e + 1 + 126;
               end else begin
-                z[14:7] <= z_e + 127;
+                z[14:7] <= z_e + 126;
               end
           end else begin
           z[6:0] <= z_m << 1;
-          z[14:7] <= z_e + 127;
+          z[14:7] <= z_e + 126;
           end
-        end else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        end else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
           if (guard && (sticky | z_m[0])) begin //round
           z[6:0] <= z_m + 1;     
              if (z_m == 8'hff) begin 
@@ -146,7 +150,7 @@ module mul_3_stage_pipe_bf16(
         end
       end
       
-      else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+      else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
          z[6:0]  <= z_m[6:0];
          z[14:7] <= z_e;
       end

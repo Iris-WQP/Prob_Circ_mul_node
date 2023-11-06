@@ -43,7 +43,7 @@ end
 
 initial begin
     f_in = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_inputs.txt","w");
-    #40;
+    #50;
     repeat(16)begin
         #10;
         $fdisplay(f_in, "%h", mul_in);
