@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # mode1 ---- three inputs
     # mode2 ---- four inputs
     # mode3 ---- six inputs 
-    mode = 3
+    mode = 0
     error = 0
     if_nan = 0
 
