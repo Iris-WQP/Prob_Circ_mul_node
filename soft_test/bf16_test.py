@@ -188,8 +188,7 @@ if __name__ == "__main__":
 
     if(error == 0):
         print("Done. All results are correct!")      
-    if(if_nan):
-        print("NAN appears.")      
+
 
 
 
