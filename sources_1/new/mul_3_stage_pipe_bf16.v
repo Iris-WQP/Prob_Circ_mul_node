@@ -26,7 +26,11 @@ module mul_3_stage_pipe_bf16(
         input rst,
         output reg [15:0] z,
         output s_output_z_stb      //output z valid
-        
+//       debug
+//        £¬
+//        output [15:0] mul_men,
+//        output [7:0] a_mm,
+//        output [7:0] b_mm
 
         );
   
@@ -35,15 +39,23 @@ module mul_3_stage_pipe_bf16(
   reg       z_s, a_s, b_s;
   reg       guard;
   wire      sticky;
+  wire      new_sticky;
   reg       [6:0] sticky_judge;
   reg       z_finish;
   assign sticky = (sticky_judge != 0);
+  assign new_sticky = (sticky_judge[5:0] != 0);
+  
+ //debug
+//  assign mul_men = {z_m,guard,sticky_judge};
+//  assign a_mm = a_m;
+//  assign b_mm = b_m;
   
   wire      stage1_valid;
   reg       stage2_valid;
   reg       stage3_valid;       
   assign stage1_valid = input_mul_stb;
   assign s_output_z_stb = stage3_valid; 
+  
 
      
    always @(posedge clk)
@@ -123,15 +135,15 @@ module mul_3_stage_pipe_bf16(
         end else if ($signed(z_e) > 126)begin
           z[14:0] <= 15'b111111110000000;
         end else if (z_m[7] == 0) begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½1
-          if (guard && (sticky | z_m[0])) begin //round
-          z[6:0] <= (z_m << 1) + 1;
+          if (sticky_judge[6] && (new_sticky | guard)) begin //round
+          z[6:0] <= {z_m[5:0], guard} + 1;
               if (z_m == 8'h8f) begin
                 z[14:7] <= z_e + 1 + 126;
               end else begin
                 z[14:7] <= z_e + 126;
               end
           end else begin
-          z[6:0] <= z_m << 1;
+          z[6:0] <= {z_m[5:0], guard};
           z[14:7] <= z_e + 126;
           end
         end else begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?

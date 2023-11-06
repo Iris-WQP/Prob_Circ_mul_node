@@ -31,15 +31,6 @@ module tb_tree();
   int f_in;
   int f_out;
   
-initial begin
-    f_out = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_outputs.txt","w");
-    #70;
-    repeat(16)begin
-        #10;
-        $fdisplay(f_out,"%h", wire_o);
-    end
-    $fclose(f_out);
-end
 
 initial begin
     f_in = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_inputs.txt","w");
@@ -50,6 +41,17 @@ initial begin
     end
     $fclose(f_in);
 end
+  
+initial begin
+    f_out = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_outputs_mode0.txt","w");
+    #70;
+    repeat(16)begin
+        #10;
+        $fdisplay(f_out,"%h", wire_o);
+    end
+    $fclose(f_out);
+end
+
   
 initial begin
   $readmemb("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_chain.txt",memory);
