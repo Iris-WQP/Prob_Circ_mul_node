@@ -129,7 +129,7 @@ module mul_3_stage_pipe_bf16(
 /*----------------------------- stage3:round and pack --------------------------------*/
       z [15] <= z_s;
       
-      if(z_finish==0)begin   //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿?
+      if(z_finish==0)begin   //normal cases
         if ($signed(z_e) < -125) begin //subnormal
           z[14:0] <= 15'd0;
         end else if ($signed(z_e) > 126)begin
@@ -137,7 +137,7 @@ module mul_3_stage_pipe_bf16(
         end else if (z_m[7] == 0) begin //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö²ï¿½ï¿½ï¿½1
           if (sticky_judge[6] && (new_sticky | guard)) begin //round
           z[6:0] <= {z_m[5:0], guard} + 1;
-              if (z_m == 8'h8f) begin
+              if (z_m == 8'h7f) begin
                 z[14:7] <= z_e + 1 + 126;
               end else begin
                 z[14:7] <= z_e + 126;

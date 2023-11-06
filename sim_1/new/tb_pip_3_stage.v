@@ -41,7 +41,7 @@ initial begin
        end
        #10 i=i+1;
   end
-  mul_in = 32'h2490c225;
+  mul_in = 32'h031f5bce;
 end
   
   initial
