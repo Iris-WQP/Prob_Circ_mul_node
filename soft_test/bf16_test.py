@@ -1,6 +1,11 @@
 import struct
 import torch
 
+# mode0 ---- two inputs
+# mode1 ---- three inputs
+# mode2 ---- four inputs
+# mode3 ---- six inputs  
+
 def hex_to_bfloat(hex_string):
     # 将十六进制字符串转换为二进制字符串
     binary_string = bin(int(hex_string, 16))[2:].zfill(16)
@@ -34,16 +39,19 @@ def bfloat_to_hex(f):
     bfloat_hex_string = hex_string[0:4]
     return bfloat_hex_string
 
-        # mode0 ---- two inputs
-        # mode1 ---- three inputs
-        # mode2 ---- four inputs
-        # mode3 ---- six inputs      
+    
 
 if __name__ == "__main__":
 
     # modify this variable to change the mode
-    mode = 0
+    # mode0 ---- two inputs
+    # mode1 ---- three inputs
+    # mode2 ---- four inputs
+    # mode3 ---- six inputs 
+    mode = 3
     error = 0
+    if_nan = 0
+
 
     input_path = 'stim_inputs.txt'
     if mode == 0:
@@ -65,6 +73,7 @@ if __name__ == "__main__":
                 bfloat_inputs = [0, 0, 0, 0, 0, 0, 0, 0]
                 soft_results = [0, 0, 0, 0]
                 hard_results = [0, 0, 0, 0]
+                middle = [0, 0, 0, 0, 0]
                 # 将十六进制数转换为BF16
                 for i in range (8):
                     bfloat_inputs[i] = hex_to_bfloat(hex_inputs[i*4:i*4+4])
@@ -79,12 +88,6 @@ if __name__ == "__main__":
                     soft_results[2] = bfloat_inputs[4] * bfloat_inputs[5]
                     soft_results[3] = bfloat_inputs[6] * bfloat_inputs[7]
                     for j in range(4):
-                        if soft_results[j] < 2**(-125) and soft_results[j] > -2**(-125):
-                            soft_results[j] = torch.tensor(0).to(torch.bfloat16)
-                        elif soft_results[j] > 2e126:
-                            soft_results[j] = torch.inf.to(torch.bfloat16)  
-                        elif soft_results[j] < -2e126:
-                            soft_results[j] = -torch.inf.to(torch.bfloat16) 
                         hard_results[j] = hex_to_bfloat(hardware_outputs[j*4:j*4+4])
                         print("soft_results"+str(j)+" "+str(soft_results[j]))
                         print("hard_results"+str(j)+" "+str(hard_results[j]))     
@@ -93,62 +96,101 @@ if __name__ == "__main__":
                                 continue
                             elif(soft_results[j]<1e-37 and soft_results[j]>-1e-37 and hard_results[j]==0):
                                 continue
-                            print("Error!")
-                            print("soft_results: "+str(soft_results[j]))
-                            print("hard_results: "+str(hard_results[j]))
+                            print("Error!!!!!")
                             error = 1
                              
                         
                 elif mode == 1:
-                    soft_results[0] = torch(0).to(torch.bfloat16)
-                    soft_results[1] = bfloat_inputs[2] * bfloat_inputs[3]
-                    soft_results[2] = bfloat_inputs[4] * bfloat_inputs[5]
-                    soft_results[3] = bfloat_inputs[6] * bfloat_inputs[7]
-                    for j in range(4):
-                        if soft_results[j] < 2e-125 and soft_results[j] > -2e-125:
-                            soft_results[j] = 0   
-                        elif soft_results[j] > 2e126:
-                            soft_results[j] = torch.inf.to(torch.bfloat16)  
-                        elif soft_results[j] < -2e126:
-                            soft_results[j] = -torch.inf.to(torch.bfloat16) 
-                        print(soft_results[j])           
+                    middle[0] = bfloat_inputs[2] * bfloat_inputs[3]
+                    middle[1] = bfloat_inputs[6] * bfloat_inputs[7]
+                    for k in range (2):
+                        if middle[k] < 2^(-125) and middle[k] > -2^(-125):
+                            middle[k] = torch.tensor(0).to(torch.bfloat16) 
+                               
+                    soft_results[2] = bfloat_inputs[1] * middle[0] 
+                    soft_results[3] = bfloat_inputs[5] * middle[1]
+                    for j in range(2,4):
+                        hard_results[j] = hex_to_bfloat(hardware_outputs[j*4:j*4+4])    
+                        print("soft_results"+str(j)+" "+str(soft_results[j]))
+                        print("hard_results"+str(j)+" "+str(hard_results[j]))  
+                        if soft_results[j] != hard_results[j]:
+                            if(hard_results[j]<2^(-125) and hard_results[j]>-2^(-125) and soft_results[j]==0):
+                                continue
+                            elif(soft_results[j]<2^(-125) and soft_results[j]>-2^(-125) and hard_results[j]==0):
+                                continue
+                            elif(soft_results[j]>2^126 and hard_results[j]==torch.inf):
+                                continue
+                            elif(soft_results[j]<-2^126 and hard_results[j]==-torch.inf):
+                                continue
+                            print("Error!!!!!")
+                            error = 1
 
+                elif mode == 2:
+                    middle[0] = bfloat_inputs[0] * bfloat_inputs[1]
+                    middle[1] = bfloat_inputs[2] * bfloat_inputs[3]
+                    middle[2] = bfloat_inputs[4] * bfloat_inputs[5]
+                    middle[3] = bfloat_inputs[6] * bfloat_inputs[7]
+                    for k in range (4):
+                        if middle[k] < 2^(-125) and middle[k] > -2^(-125):
+                            middle[k] = torch.tensor(0).to(torch.bfloat16)                     
+                               
+                    soft_results[2] = middle[0] * middle[1]
+                    soft_results[3] = middle[2] * middle[3]
+                    for j in range(3,4):
+                        hard_results[j] = hex_to_bfloat(hardware_outputs[j*4:j*4+4])    
+                        print("soft_results"+str(j)+" "+str(soft_results[j]))
+                        print("hard_results"+str(j)+" "+str(hard_results[j]))  
+                        if soft_results[j] != hard_results[j]:
+                            if(hard_results[j]<2^(-125) and hard_results[j]>-2^(-125) and soft_results[j]==0):
+                                continue
+                            elif(soft_results[j]<2^(-125) and soft_results[j]>-2^(-125) and hard_results[j]==0):
+                                continue
+                            elif(soft_results[j]>2^126 and hard_results[j]==torch.inf):
+                                continue
+                            elif(soft_results[j]<-2^126 and hard_results[j]==-torch.inf):
+                                continue
+                            print("Error!!!!!")
+                            error = 1     
+
+                elif mode == 3:
+                    middle[1] = bfloat_inputs[2] * bfloat_inputs[3]
+                    middle[2] = bfloat_inputs[4] * bfloat_inputs[5]
+                    middle[3] = bfloat_inputs[6] * bfloat_inputs[7]
+                    for k in range (1,4):
+                        if middle[k] < 2^(-125) and middle[k] > -2^(-125):
+                            middle[k] = torch.tensor(0).to(torch.bfloat16)     
+                    middle[4] = middle[2] * middle[3]
+                    if middle[4] < 2^(-125) and middle[4] > -2^(-125):
+                        middle[4] = torch.tensor(0).to(torch.bfloat16)
+                    soft_results[3] = middle[1] * middle[4]
+                    for j in range(2,4):
+                        hard_results[j] = hex_to_bfloat(hardware_outputs[j*4:j*4+4])    
+                        print("soft_results"+str(j)+" "+str(soft_results[j]))
+                        print("hard_results"+str(j)+" "+str(hard_results[j]))  
+                        if soft_results[j] != hard_results[j]:
+                            if(hard_results[j]<2^(-125) and hard_results[j]>-2^(-125) and soft_results[j]==0):
+                                continue
+                            elif(soft_results[j]<2^(-125) and soft_results[j]>-2^(-125) and hard_results[j]==0):
+                                continue
+                            elif(soft_results[j]>2^126 and hard_results[j]==torch.inf):
+                                continue
+                            elif(soft_results[j]<-2^126 and hard_results[j]==-torch.inf):
+                                continue
+                            elif(soft_results[j] == torch.nan):
+                                print("NAN!!!")
+                                if_nan = 1
+                                continue
+                            print("Error!!!!!")
+                            error = 1                                                      
 
                 hex_inputs = input_file.readline().strip()
                 hardware_outputs = output_file.readline().strip()  
 
     if(error == 0):
-        print("Done. All results are correct!")            
-    
-    
-    
-    # # software_output_path和hardware_output_path中的结果逐行比较
-    # error = 0
-    # with open(software_output_path, 'r') as output_file:
-    #     with open(hardware_output_path, 'r') as hardware_output_file:
-    #         output_hex = output_file.readline().strip()
-    #         hardware_output_hex = hardware_output_file.readline().strip()
-    #         while output_hex:
-    #             if output_hex != hardware_output_hex:
-    #                 print("Error!")
-    #                 print("output_hex: "+output_hex)
-    #                 print("hardware_output_hex: "+hardware_output_hex)
-    #                 error = 1
-    #                 break
-    #             output_hex = output_file.readline().strip()
-    #             hardware_output_hex = hardware_output_file.readline().strip()
-    #         if(error == 0):
-    #             print("Done. All results are correct!")
+        print("Done. All results are correct!")      
+    if(if_nan):
+        print("NAN appears.")      
 
-    # a = hex_to_bfloat("031f")
-    # b = hex_to_bfloat("5bce")
-    # print(a)
-    # print(b)
-    # c = a*b
-    # print(c)
-
-    # d = hex_to_bfloat("1F80")
-    # print(d)
 
 
 
