@@ -43,8 +43,8 @@ initial begin
 end
   
 initial begin
-    f_out = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_outputs_mode0.txt","w");
-    #70;
+    f_out = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_outputs_mode3.txt","w");
+    #130;
     repeat(16)begin
         #10;
         $fdisplay(f_out,"%h", wire_o);
@@ -106,7 +106,7 @@ end
   initial
   begin
     rst <= 1'b1;
-    mode <= 2'b00;
+    mode <= 2'b11;
     #50 rst <= 1'b0;
   end
 
