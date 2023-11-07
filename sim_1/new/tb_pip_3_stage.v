@@ -26,9 +26,12 @@ module tb_pip_3_stage();
   reg   mul_stb;
   reg [63:0] memory[31:0];
   reg   [2*`DW-1:0] mul_in;
-//  wire [15:0] mul_men;
-//  wire [7:0] a_mm;
-//  wire [7:0] b_mm;
+  //debug
+  wire [15:0] mul_men;
+  wire [7:0] a_mm;
+  wire [7:0] b_mm;
+  wire[9:0] z_ee;
+  
   int i;
 initial begin
   $readmemb("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_bi.txt",memory);
@@ -41,7 +44,7 @@ initial begin
        end
        #10 i=i+1;
   end
-  mul_in = 32'h031f5bce;
+  mul_in = 32'h0823cfc8;
 end
   
   initial
@@ -100,10 +103,11 @@ end
         .s_output_z_stb(wire_o_stb)      //output z valid
         
         //debug
-//        ,
-//        .mul_men(mul_men),
-//        .a_mm(a_mm),
-//        .b_mm(b_mm)
+        ,
+        .mul_men(mul_men),
+        .a_mm(a_mm),
+        .b_mm(b_mm),
+        .z_ee(z_ee)
   );
     
   

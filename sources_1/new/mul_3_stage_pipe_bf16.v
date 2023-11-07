@@ -27,10 +27,11 @@ module mul_3_stage_pipe_bf16(
         output reg [15:0] z,
         output s_output_z_stb      //output z valid
 //       debug
-//        ��
-//        output [15:0] mul_men,
-//        output [7:0] a_mm,
-//        output [7:0] b_mm
+        ,
+        output [15:0] mul_men,
+        output [7:0] a_mm,
+        output [7:0] b_mm,
+        output [9:0] z_ee
 
         );
   
@@ -45,10 +46,11 @@ module mul_3_stage_pipe_bf16(
   assign sticky = (sticky_judge != 0);
   assign new_sticky = (sticky_judge[5:0] != 0);
   
- //debug
-//  assign mul_men = {z_m,guard,sticky_judge};
-//  assign a_mm = a_m;
-//  assign b_mm = b_m;
+// debug
+  assign mul_men = {z_m,guard,sticky_judge};
+  assign a_mm = a_m;
+  assign b_mm = b_m;
+  assign z_ee = z_e;
   
   wire      stage1_valid;
   reg       stage2_valid;
@@ -65,7 +67,7 @@ module mul_3_stage_pipe_bf16(
           z_finish <= 0;
           if (input_mul_stb) begin
               a_m <= {1'b1,input_mul[(6+16):16]};
-              b_m <= {1'b1,input_mul[6:0]};  //�ں���special case���β��ǰ��?1
+              b_m <= {1'b1,input_mul[6:0]};  
               a_e <= input_mul[(14+16):(7+16)] - 127;
               b_e <= input_mul[14:7] - 127;
               a_s <= input_mul[15+16];
@@ -134,10 +136,10 @@ module mul_3_stage_pipe_bf16(
           z[14:0] <= 15'd0;
         end else if ($signed(z_e) > 126)begin
           z[14:0] <= 15'b111111110000000;
-        end else if (z_m[7] == 0) begin //�������ֲ���1
-          if (sticky_judge[6] && (new_sticky | guard)) begin //round
-          z[6:0] <= {z_m[5:0], guard} + 1;
-              if (z_m == 8'h7f) begin
+        end else if (z_m[7] == 0) begin 
+          if (sticky_judge[6] & (new_sticky | guard)) begin //round
+            z[6:0] <= {z_m[5:0], guard} + 1;
+              if ({z_m[5:0], guard} == 8'hff) begin
                 z[14:7] <= z_e + 1 + 126;
               end else begin
                 z[14:7] <= z_e + 126;
@@ -166,7 +168,7 @@ module mul_3_stage_pipe_bf16(
          z[6:0]  <= z_m[6:0];
          z[14:7] <= z_e;
       end
-/*-------------------- valid �źſ��� ---------------------*/
+/*-------------------- valid signal pipeline ---------------------*/
      if (rst == 1) begin
       s_input_mul_ack <= 1'b0;
       stage2_valid <= 1'b0;
