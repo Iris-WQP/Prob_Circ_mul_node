@@ -148,11 +148,10 @@ module mul_3_stage_pipe_bf16(
           z[6:0] <= {z_m[5:0], guard};
           z[14:7] <= z_e + 126;
           end
-        end else begin //����������1�����������?
+        end else begin
           if (guard && (sticky | z_m[0])) begin //round
           z[6:0] <= z_m + 1;     
              if (z_m == 8'hff) begin 
-                //���z_mԽ�磬z_m+1��ȫ�㣬z_e+1����
                 z[14:7] <= z_e + 1 + 127; 
              end else begin
                 z[14:7] <= z_e + 127; 
