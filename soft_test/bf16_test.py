@@ -48,7 +48,7 @@ if __name__ == "__main__":
     # mode1 ---- three inputs
     # mode2 ---- four inputs
     # mode3 ---- six inputs 
-    mode = 0
+    mode = 1
     error = 0
     if_nan = 0
 
@@ -136,7 +136,7 @@ if __name__ == "__main__":
                                
                     soft_results[2] = middle[0] * middle[1]
                     soft_results[3] = middle[2] * middle[3]
-                    for j in range(2,4):
+                    for j in range(3,4):
                         hard_results[j] = hex_to_bfloat(hardware_outputs[j*4:j*4+4])    
                         print("soft_results"+str(j)+" "+str(soft_results[j]))
                         print("hard_results"+str(j)+" "+str(hard_results[j]))  
@@ -163,7 +163,7 @@ if __name__ == "__main__":
                     if middle[4] < 2^(-125) and middle[4] > -2^(-125):
                         middle[4] = torch.tensor(0).to(torch.bfloat16)
                     soft_results[3] = middle[1] * middle[4]
-                    for j in range(3,4):
+                    for j in range(2,4):
                         hard_results[j] = hex_to_bfloat(hardware_outputs[j*4:j*4+4])    
                         print("soft_results"+str(j)+" "+str(soft_results[j]))
                         print("hard_results"+str(j)+" "+str(hard_results[j]))  
