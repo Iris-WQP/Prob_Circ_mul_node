@@ -19,36 +19,41 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 `include "defines.vh"
-module BRAM #
-             (   parameter ADDR_WIDTH = `log2_bram_depth_in,//11
-                 parameter DATA_WIDTH = `bram_width_in,//192
-                 parameter      DEPTH = `bram_depth_in)//2048
+module BRAM #    //only one bram install all data
+             (   parameter ADDR_WIDTH = `log2_bram_depth_in,
+                 parameter DATA_WIDTH = 256,
+                 parameter      DEPTH = `bram_depth_in)
              (
                 input clk,
                 //read port
                 input re,
                 input [ADDR_WIDTH-1:0] rd_addr,
                 output reg [DATA_WIDTH-1:0] rd_data,
+                output reg rd_data_vld,
                 //write port
                 input we,     //wr_req_vld
                 input [ADDR_WIDTH-1:0] wr_addr,
                 input [DATA_WIDTH-1:0] wr_data
                 );
 
+
     (*ram_style="block"*)reg [DATA_WIDTH-1:0] bram [0:DEPTH-1];
     //read
     always@(posedge clk)
     begin
-        if(re)
+        if(re)begin
             rd_data <= bram[rd_addr];
+            rd_data_vld <= 1;
+        end
         else
             rd_data <= 0;
     end
     //write
     always @(posedge clk)
     begin
-        if(we)
+        if(we)begin
             bram[wr_addr]<=wr_data;
+        end
     end
 endmodule
 
