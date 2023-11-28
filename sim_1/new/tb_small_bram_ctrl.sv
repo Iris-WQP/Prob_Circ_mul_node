@@ -30,6 +30,7 @@ module tb_small_bram_ctrl();
   reg input_vld;
   reg [255:0] memory [2047:0];
   reg [255:0] interface_in;
+  wire [255:0] bram_in_wdata;
   int i;
   int f_in;
   int f_out;
@@ -47,32 +48,41 @@ wire mul_stb;
 wire fi_read;
 wire [`small_log2_bram_depth_in-1:0] bram_in_waddr;
 wire [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+
+wire  [256-1:0] bram_sample_0;                
+wire  [256-1:0] bram_sample_1;                
+wire  [256-1:0] bram_sample_254;
+wire  [256-1:0] bram_sample_255;
   
 initial begin
   mode <= 2'b00;
   num_of_line_per_node_minusone <= 11'd2047;
   $readmemb("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_bram_ctrl.txt",memory);
   i = 0;
-  interface_in = 0;
-  #45;
+  @(posedge clk)interface_in = 0;
+  #40;
   repeat(256)begin
        begin
+        @(posedge clk)begin
         interface_in = memory[i];
         input_vld = 1;
+        end
        end
        #10 i=i+1;
   end
-      input_vld = 0;
+     @(posedge clk) input_vld = 0;
 repeat (6) begin
     #5110
     repeat(256)begin
        begin
+        @(posedge clk)begin
         interface_in = memory[i];
         input_vld = 1;
+        end
        end
        #10 i=i+1;
   end
-  input_vld = 0;
+  @(posedge clk) input_vld = 0;
 end
 end
   
@@ -124,6 +134,7 @@ end
         .clk(clk),
         .rst(rst),
         .interface_in(interface_in),
+        .bram_in_wdata(bram_in_wdata),
         .input_vld(input_vld),
         .input_ready(input_ready),
         .mode(mode),
@@ -145,6 +156,12 @@ end
     .fi_read(fi_read),
     .bram_in_waddr(bram_in_waddr),
     .bram_in_raddr(bram_in_raddr)
+    
+    ,
+    .bram_sample_0(bram_sample_0),                
+    .bram_sample_1(bram_sample_1),                
+    .bram_sample_254(bram_sample_254),
+    .bram_sample_255(bram_sample_255)
     );
 
 

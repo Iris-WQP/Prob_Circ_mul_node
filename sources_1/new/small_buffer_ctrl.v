@@ -23,6 +23,7 @@ module small_buffer_ctrl(
      input clk,
      input rst,
      input [255:0] interface_in,
+     output reg [255:0] bram_in_wdata,
      input input_vld,
      output reg input_ready,
      input [1:0] mode,
@@ -45,6 +46,11 @@ module small_buffer_ctrl(
    output reg fi_read,
    output reg [`small_log2_bram_depth_in-1:0] bram_in_waddr,
    output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr
+   ,
+                output  [256-1:0] bram_sample_0,                
+                output  [256-1:0] bram_sample_1,                
+                output  [256-1:0] bram_sample_254,
+                output  [256-1:0] bram_sample_255
      
     );
     
@@ -67,9 +73,9 @@ assign bram_in_we = input_vld&input_ready&(state==data_in);
 assign bram_in_re = (fi_read&&(state==calculate));
 assign mul_in = fi_read? se_bram_read_data:bram_read_data[127:0];
 
+always@(posedge clk) bram_in_wdata <= interface_in;
 
-
-always@(posedge clk)begin
+always@(posedge clk)begin 
     if(rst)begin
         bram_in_waddr <= 'b0;
         bram_in_raddr <= 'b0;
@@ -77,7 +83,7 @@ always@(posedge clk)begin
         input_ready <= 1'b1;
         fi_read <= 1'b1;
     end
-    else if(input_ready&(state==data_in)) begin 
+    else if(state==2'b00) begin 
         if (bram_in_waddr==`small_bram_depth_in-1) begin
             bram_in_waddr <= 'b0;
             state <= calculate;
@@ -85,6 +91,7 @@ always@(posedge clk)begin
         end
         else begin
             bram_in_waddr <= bram_in_waddr+1'b1;
+
         end
     end
     else if(state==calculate)begin
@@ -148,7 +155,11 @@ BRAM #(
     .rd_data_vld(mul_stb),
     .we(bram_in_we),       //write enable
     .wr_addr(bram_in_waddr),
-    .wr_data(interface_in)
+    .wr_data(bram_in_wdata),
+    .bram_sample_0(bram_sample_0),                
+    .bram_sample_1(bram_sample_1),                
+    .bram_sample_254(bram_sample_254),
+    .bram_sample_255(bram_sample_255)
   );
 
 mul_tree_bf16 dut(
@@ -177,10 +188,3 @@ endmodule
 //    .wr_addr(bram_in_waddr),
 //    .wr_data(interface_in)
 //  );
-
-
-
-
-
-
-
