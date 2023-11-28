@@ -33,7 +33,19 @@ module small_buffer_ctrl(
      //calculate max exponent
      input [10:0] num_of_line_per_node_minusone,
      output reg [7:0] max_exponent,
-     output reg max_exponent_vld
+     output reg max_exponent_vld,
+     
+//     debug
+     output bram_in_we,
+    output bram_in_re,
+    output reg [127:0]se_bram_read_data,
+    output wire [255:0]bram_read_data,
+   output wire [127:0] mul_in,
+   output wire mul_stb,
+   output reg fi_read,
+   output reg [`small_log2_bram_depth_in-1:0] bram_in_waddr,
+   output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr
+     
     );
     
 
@@ -42,19 +54,18 @@ parameter data_in = 2'd0,
              data_out = 2'd2,
              stop_work = 2'd3;
     
-wire bram_in_we;
-wire bram_in_re;
-reg [127:0]se_bram_read_data;
-wire [255:0]bram_read_data;
-wire [127:0] mul_in;
-wire mul_stb;
-reg fi_read;
-reg [`small_log2_bram_depth_in-1:0] bram_in_waddr;
-reg [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+//wire bram_in_we;
+//wire bram_in_re;
+//reg [127:0]se_bram_read_data;
+//wire [255:0]bram_read_data;
+//wire [127:0] mul_in;
+//wire mul_stb;
+//reg fi_read;
+//reg [`small_log2_bram_depth_in-1:0] bram_in_waddr;
+//reg [`small_log2_bram_depth_in-1:0] bram_in_raddr;
 assign bram_in_we = input_vld&input_ready&(state==data_in);
 assign bram_in_re = (fi_read&&(state==calculate));
-assign mul_in = fi_read? se_bram_read_data:bram_read_data[255:128];
-//wire [`bram_width_in-1:0] bram_in_wdata;
+assign mul_in = fi_read? se_bram_read_data:bram_read_data[127:0];
 
 
 
@@ -65,7 +76,6 @@ always@(posedge clk)begin
         state <= data_in;
         input_ready <= 1'b1;
         fi_read <= 1'b1;
-        
     end
     else if(input_ready&(state==data_in)) begin 
         if (bram_in_waddr==`small_bram_depth_in-1) begin

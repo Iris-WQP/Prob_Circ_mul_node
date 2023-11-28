@@ -37,6 +37,17 @@ module tb_small_bram_ctrl();
   wire[7:0] max_exponent;
   wire max_exponent_vld;
   
+  //debug
+  wire bram_in_we;
+wire bram_in_re;
+wire [127:0]se_bram_read_data;
+wire [255:0]bram_read_data;
+wire [127:0] mul_in;
+wire mul_stb;
+wire fi_read;
+wire [`small_log2_bram_depth_in-1:0] bram_in_waddr;
+wire [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+  
 initial begin
   mode <= 2'b00;
   num_of_line_per_node_minusone <= 11'd2047;
@@ -122,6 +133,18 @@ end
         .num_of_line_per_node_minusone(num_of_line_per_node_minusone),
         .max_exponent(max_exponent),
         .max_exponent_vld(max_exponent_vld)
+        
+        //debug
+        ,
+    .bram_in_we(bram_in_we),
+    .bram_in_re(bram_in_re),
+    .se_bram_read_data(se_bram_read_data),
+    .bram_read_data(bram_read_data),
+    .mul_in(mul_in),
+    .mul_stb(mul_stb),
+    .fi_read(fi_read),
+    .bram_in_waddr(bram_in_waddr),
+    .bram_in_raddr(bram_in_raddr)
     );
 
 
