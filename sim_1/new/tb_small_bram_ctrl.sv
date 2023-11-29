@@ -39,7 +39,7 @@ module tb_small_bram_ctrl();
   wire max_exponent_vld;
   
   //debug
-  wire bram_in_we;
+wire bram_in_we;
 wire bram_in_re;
 wire [127:0]se_bram_read_data;
 wire [255:0]bram_read_data;
@@ -48,6 +48,7 @@ wire mul_stb;
 wire fi_read;
 wire [`small_log2_bram_depth_in-1:0] bram_in_waddr;
 wire [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+wire [10:0] cnt_output;
 
 //wire  [256-1:0] bram_sample_0;                
 //wire  [256-1:0] bram_sample_1;                
@@ -129,6 +130,10 @@ end
       #5 clk <= ~clk;
     end
   end
+  
+   wire [7:0] compare_tree0;
+   wire [7:0] compare_tree1;
+   wire [7:0] compare_tree2;
 
     small_buffer_ctrl dut (
         .clk(clk),
@@ -154,8 +159,12 @@ end
     .mul_in(mul_in),
     .mul_stb(mul_stb),
     .fi_read(fi_read),
+    .cnt_output(cnt_output),
     .bram_in_waddr(bram_in_waddr),
-    .bram_in_raddr(bram_in_raddr)
+    .bram_in_raddr(bram_in_raddr),
+    .compare_tree0(compare_tree0),
+    .compare_tree1(compare_tree1),
+    .compare_tree2(compare_tree2)
     
 //    ,
 //    .bram_sample_0(bram_sample_0),                

@@ -43,9 +43,14 @@ module small_buffer_ctrl(
     output wire [255:0]bram_read_data,
    output wire [127:0] mul_in,
    output wire mul_stb,
+   output wire bram_out_valid,
    output reg fi_read,
    output reg [`small_log2_bram_depth_in-1:0] bram_in_waddr,
-   output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr
+   output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr,
+   output reg [10:0] cnt_output,
+   output [7:0] compare_tree0,
+   output [7:0] compare_tree1,
+   output [7:0] compare_tree2
 //   ,
 //                output  [256-1:0] bram_sample_0,                
 //                output  [256-1:0] bram_sample_1,                
@@ -70,7 +75,8 @@ parameter data_in = 2'd0,
 //reg [`small_log2_bram_depth_in-1:0] bram_in_raddr;
 assign bram_in_we = input_vld&input_ready&(state==data_in);
 assign bram_in_re = (fi_read&&(state==calculate));
-assign mul_in = fi_read? se_bram_read_data:bram_read_data[127:0];
+assign mul_in = (fi_read)? se_bram_read_data:bram_read_data[127:0];
+assign mul_stb = (bram_out_valid|fi_read)&(state==calculate);
 
 always@(posedge clk) bram_in_wdata <= interface_in;
 
@@ -90,7 +96,6 @@ always@(posedge clk)begin
         end
         else begin
             bram_in_waddr <= bram_in_waddr+1'b1;
-
         end
     end
     else if(state==calculate)begin
@@ -113,7 +118,7 @@ end
 
 reg last_c_01;
 reg last_c_2;
-reg [10:0] cnt_output;
+
 wire [7:0] higher_exponent;
 reg [7:0] compare_tree [2:0];
 wire [7:0] compare_tree_wire [2:0];
@@ -180,7 +185,7 @@ BRAM #(
     .re(bram_in_re),       //read enable
     .rd_addr(bram_in_raddr),
     .rd_data(bram_read_data),
-    .rd_data_vld(mul_stb),
+    .rd_data_vld(bram_out_valid),
     .we(bram_in_we),       //write enable
     .wr_addr(bram_in_waddr),
     .wr_data(bram_in_wdata)
@@ -201,6 +206,9 @@ mul_tree_bf16 dut(
         .final_output_stbs_1(output_vld)      //output z valid
 );
     
+  assign  compare_tree0 = compare_tree[0];
+  assign  compare_tree1 = compare_tree[1];
+  assign  compare_tree2 = compare_tree[2];
 endmodule  
 
 //OUT_BRAM #(

@@ -58,8 +58,10 @@ module BRAM #    //only one bram install all data
             rd_data <= bram[rd_addr];
             rd_data_vld <= 1;
         end
-        else
+        else begin
             rd_data <= 0;
+            rd_data_vld <= 0;
+        end
     end
     //write
     always @(posedge clk)
