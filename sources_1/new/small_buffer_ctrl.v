@@ -73,6 +73,7 @@ parameter data_in = 2'd0,
 //reg fi_read;
 //reg [`small_log2_bram_depth_in-1:0] bram_in_waddr;
 //reg [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+reg state_change;
 assign bram_in_we = input_vld&input_ready&(state==data_in);
 assign bram_in_re = (fi_read&&(state==calculate));
 assign mul_in = (fi_read)? se_bram_read_data:bram_read_data[127:0];
@@ -87,6 +88,7 @@ always@(posedge clk)begin
         state <= data_in;
         input_ready <= 1'b1;
         fi_read <= 1'b1;
+        state_change <= 1'b0;
     end
     else if(state==2'b00) begin 
         if (bram_in_waddr==`small_bram_depth_in-1) begin
@@ -100,11 +102,15 @@ always@(posedge clk)begin
     end
     else if(state==calculate)begin
         fi_read <= ~fi_read;
+        if (state_change) begin
+            state <= data_in;
+            input_ready <= 1'b1;
+            bram_in_raddr <= 1'b0;
+            state_change <= 1'b0;            
+        end
         if(fi_read)begin
             if(bram_in_raddr == `small_bram_depth_in-1) begin
-                bram_in_raddr <= 1'b0;
-                state <= data_in;
-                input_ready <= 1'b1;
+                state_change <= 1'b1;
             end
             else begin
                 bram_in_raddr <= bram_in_raddr+1'b1;
@@ -119,6 +125,7 @@ end
 reg last_c_01;
 reg last_c_2;
 
+/*------------------ compare tree ------------------------*/
 wire [7:0] higher_exponent;
 reg [7:0] compare_tree [2:0];
 wire [7:0] compare_tree_wire [2:0];
@@ -156,12 +163,15 @@ always@(posedge clk)begin
             end
         end
         if (last_c_01 == 1'b1)begin
+           compare_tree[0] <= 8'h00;         
+           compare_tree[1] <= 8'h00;         
            compare_tree[2] <= compare_tree_wire[2];
            max_exponent <= higher_exponent;
            last_c_2 <= 1'b1; 
            last_c_01 <= 1'b0;
         end
         if (last_c_2 == 1'b1)begin
+           compare_tree[2] <= 8'h00;
            max_exponent <= higher_exponent;
            max_exponent_vld <= 1'b1; 
            last_c_2 <= 1'b0;        
