@@ -41,10 +41,15 @@ initial begin
     end
     $fclose(f_in);
 end
-  
+
+string output_string;
 initial begin
+    mode <= 2'b00;
     f_out = $fopen("D:/PKU/fpu/fpu.srcs/soft_test/stim_outputs_mode2.txt","w");
     #100;
+    //mode 1 --- 70
+    //mode2,3 --- 100
+    //mode 4 --- 130
     repeat(15)begin
         #10;
         $fdisplay(f_out,"%h", wire_o);
@@ -92,21 +97,12 @@ end
 
 
 
-  mul_tree_bf16 dut(
-        .clk(clk),
-        .rst(rst),
-        .mul_ins(mul_in),        
-        .mul_stb(mul_stb),  
-        .mode (mode),
-        .outputs(wire_o),
-        .final_output_stbs_1(wire_o_stb)      //output z valid
-  );
+
     
   
   initial
   begin
     rst <= 1'b1;
-    mode <= 2'b10;
     #50 rst <= 1'b0;
   end
 
@@ -125,5 +121,13 @@ end
     end
   end
     
-    
+  mul_tree_bf16 dut(
+        .clk(clk),
+        .rst(rst),
+        .mul_ins(mul_in),        
+        .mul_stb(mul_stb),  
+        .mode (mode),
+        .outputs(wire_o),
+        .final_output_stbs_1(wire_o_stb)      //output z valid
+  );    
 endmodule

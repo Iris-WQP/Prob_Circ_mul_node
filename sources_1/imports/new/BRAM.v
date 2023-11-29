@@ -34,10 +34,23 @@ module BRAM #    //only one bram install all data
                 input we,     //wr_req_vld
                 input [ADDR_WIDTH-1:0] wr_addr,
                 input [DATA_WIDTH-1:0] wr_data
+                
+//                //debug
+//                ,output  [DATA_WIDTH-1:0] bram_sample_0,                
+//                output  [DATA_WIDTH-1:0] bram_sample_1,                
+//                output  [DATA_WIDTH-1:0] bram_sample_254,
+//                output  [DATA_WIDTH-1:0] bram_sample_255
                 );
 
 
     (*ram_style="block"*)reg [DATA_WIDTH-1:0] bram [0:DEPTH-1];
+//    assign bram_sample_0 = bram[0];
+//    assign bram_sample_1 = bram[1];
+//    assign bram_sample_254 = bram[254];
+//    assign bram_sample_255 = bram[255];
+    
+    
+    
     //read
     always@(posedge clk)
     begin

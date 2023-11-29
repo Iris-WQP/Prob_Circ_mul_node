@@ -49,10 +49,10 @@ wire fi_read;
 wire [`small_log2_bram_depth_in-1:0] bram_in_waddr;
 wire [`small_log2_bram_depth_in-1:0] bram_in_raddr;
 
-wire  [256-1:0] bram_sample_0;                
-wire  [256-1:0] bram_sample_1;                
-wire  [256-1:0] bram_sample_254;
-wire  [256-1:0] bram_sample_255;
+//wire  [256-1:0] bram_sample_0;                
+//wire  [256-1:0] bram_sample_1;                
+//wire  [256-1:0] bram_sample_254;
+//wire  [256-1:0] bram_sample_255;
   
 initial begin
   mode <= 2'b00;
@@ -157,11 +157,11 @@ end
     .bram_in_waddr(bram_in_waddr),
     .bram_in_raddr(bram_in_raddr)
     
-    ,
-    .bram_sample_0(bram_sample_0),                
-    .bram_sample_1(bram_sample_1),                
-    .bram_sample_254(bram_sample_254),
-    .bram_sample_255(bram_sample_255)
+//    ,
+//    .bram_sample_0(bram_sample_0),                
+//    .bram_sample_1(bram_sample_1),                
+//    .bram_sample_254(bram_sample_254),
+//    .bram_sample_255(bram_sample_255)
     );
 
 

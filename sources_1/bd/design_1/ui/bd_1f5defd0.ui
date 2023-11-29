@@ -2,8 +2,9 @@
    "ExpandedHierarchyInLayout":"",
    "guistr":"# # String gsaved with Nlview 6.8.11  2018-08-07 bk=1.4403 VDI=40 GEI=35 GUI=JA:9.0 non-TLS
 #  -string -flagsOSRD
-preplace inst processing_system7_0 -pg 1 -lvl 1 -y 340 -defaultsOSRD
-levelinfo -pg 1 -70 210 490 -top -140 -bot 820
+preplace inst mig_7series_0 -pg 1 -lvl 1 -y 180 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 2 -y 340 -defaultsOSRD
+levelinfo -pg 1 -240 -130 210 660 -top -140 -bot 820
 "
 }
-
+0

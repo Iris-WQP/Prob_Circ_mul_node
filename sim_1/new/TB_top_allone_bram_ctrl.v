@@ -19,12 +19,12 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
-
 module TB_top_allone_bram_ctrl();
   wire [(4*`DW-1):0] wire_o;
   wire output_vld;
   wire input_ready;
   wire [1:0] state;
+  wire stop;
   reg  [1:0] mode;
   reg  clk;
   reg  rst;
@@ -34,21 +34,22 @@ module TB_top_allone_bram_ctrl();
   int i;
   int f_in;
   int f_out;
-  
 
   
 initial begin
+  mode <= 2'b01;
   $readmemb("D:/PKU/fpu/fpu.srcs/sim_1/imports/multiplier/stim_bram_ctrl.txt",memory);
   i = 0;
   interface_in = 0;
   #45;
-  repeat(2048)begin
+  repeat(1024)begin
        begin
         interface_in = memory[i];
         input_vld = 1;
        end
        #10 i=i+1;
   end
+      input_vld = 0;
 end
   
   initial
@@ -72,12 +73,7 @@ end
       #5 clk <= ~clk;
     end
   end
-
-
-
-
-
-
+  
 
   initial
   begin
@@ -109,7 +105,8 @@ end
         .mode(mode),
         .interface_out(wire_o),
         .output_vld(output_vld),
-        .state(state)
+        .state(state),
+        .stop(stop)
     );
 
 //initial begin
@@ -136,6 +133,5 @@ end
 //    end
 //    $fclose(f_out);
 //end
-
 
 endmodule

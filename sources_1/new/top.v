@@ -23,7 +23,7 @@
 module top #
 (	
     parameter M_AXI_ID_WIDTH = 4,    //ID用来区分不同的请求
-    parameter M_AXI_DATA_WIDTH = `Tin*`DW //8*16=128
+    parameter M_AXI_DATA_WIDTH = 256 
 )
 (
     input clk,
@@ -31,7 +31,7 @@ module top #
    /////////////////Read Address
     output [M_AXI_ID_WIDTH-1 : 0]M_AXI_ARID, //主设备（Master）发起的读访问请求的ID（Identifier）
     output [32-1 : 0]M_AXI_ARADDR,
-    output [7 : 0]M_AXI_ARLEN, //突发长度，暂定为1
+    output [7 : 0]M_AXI_ARLEN, 
     output [2 : 0]M_AXI_ARSIZE,//位宽;
     output [1 : 0]M_AXI_ARBURST,//=2'b01;
     output M_AXI_ARLOCK,//=1'b0;
@@ -46,8 +46,30 @@ module top #
     input [1 : 0]M_AXI_RRESP,//ignore
     input M_AXI_RLAST,
     input M_AXI_RVALID,
-    output M_AXI_RREADY
+    output M_AXI_RREADY,
 
+
+    //AW channel
+    output [M_AXI_ID_WIDTH-1 : 0]M_AXI_AWID,//write addr
+    output [32-1 : 0]M_AXI_AWADDR,
+    output [7 : 0]M_AXI_AWLEN,
+    output [2 : 0]M_AXI_AWSIZE,//=clogb2((M_AXI_DATA_WIDTH/8)-1);
+    output [1 : 0]M_AXI_AWBURST,//=2'b01;
+    output  M_AXI_AWLOCK,//1'b0;
+    output [3 : 0]M_AXI_AWCACHE,//=4'b10
+    output [2 : 0]M_AXI_AWPROT,//=3'h0;
+    output [3 : 0]M_AXI_AWQOS,//=4'h0;
+    output M_AXI_AWVALID,
+    input M_AXI_AWREADY,
+    output [M_AXI_DATA_WIDTH-1 : 0]M_AXI_WDATA,
+    output [M_AXI_DATA_WIDTH/8-1 : 0]M_AXI_WSTRB,
+    output M_AXI_WLAST,
+    output M_AXI_WVALID,
+    input M_AXI_WREADY,
+    input [M_AXI_ID_WIDTH-1 : 0]M_AXI_BID,//ignore
+    input [1 : 0] M_AXI_BRESP,//ignore
+    input M_AXI_BVALID,//Bvalid and Bread means a a write response.
+    output M_AXI_BREADY//Bvalid and Bread means a a write response.
     );
 
 wire bram_in_we;
@@ -62,6 +84,13 @@ wire [1:0] mode;
 wire [`Tout*`DW-1:0] wire_o;
 wire wire_o_stb;
 
+wire sync_async_rst_n;
+sync_async_reset u_sync_async_reset
+(
+    .clk(clk),
+    .rst_n(rst_n),
+    .sync_async_rst_n(sync_async_rst_n)
+);
     
 BRAM #(
     .ADDR_WIDTH(`log2_bram_depth_in),//11
@@ -88,5 +117,28 @@ BRAM #(
   );
   
   ctrl u_ctrl();
+  
     
+endmodule
+
+module sync_async_reset
+(
+    input clk,
+    input rst_n,
+    output sync_async_rst_n
+);
+reg rst_s1_n;
+reg rst_s2_n;
+
+always@(posedge clk or negedge rst_n)begin
+    if(!rst_n)begin
+        rst_s1_n <= 1'b0;
+        rst_s2_n <= 1'b0;
+    end
+    else begin
+        rst_s1_n <= 1'b1;
+        rst_s2_n <= rst_s1_n;
+    end
+end
+
 endmodule

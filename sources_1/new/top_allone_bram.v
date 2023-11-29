@@ -29,8 +29,11 @@ module top_allone_bram_ctrl(
      output [127:0] interface_out,
      output output_vld,
      output reg [1:0] state,
-     output reg stop
+     output reg stop// will be deleted later
+//     output reg [7:0] max_exponent
     );
+    
+
     
 
 parameter data_in = 2'd0,
@@ -40,6 +43,7 @@ parameter data_in = 2'd0,
     
 wire bram_in_we;
 wire bram_in_re;
+reg [127:0]se_bram_read_data;
 wire [255:0]bram_read_data;
 wire [127:0] mul_in;
 wire mul_stb;
@@ -48,7 +52,7 @@ reg [`log2_bram_depth_in-1:0] bram_in_waddr;
 reg [`log2_bram_depth_in-1:0] bram_in_raddr;
 assign bram_in_we = input_vld&input_ready&(state==data_in);
 assign bram_in_re = (fi_read&&(state==calculate));
-assign mul_in = fi_read? bram_read_data[127:0]:bram_read_data[255:128];
+assign mul_in = fi_read? se_bram_read_data:bram_read_data[255:128];
 //wire [`bram_width_in-1:0] bram_in_wdata;
 
 
@@ -60,8 +64,9 @@ always@(posedge clk)begin
         state <= data_in;
         input_ready <= 1'b1;
         fi_read <= 1'b1;
+        
     end
-    else if(input_vld&input_ready&(state==data_in)) begin 
+    else if(input_ready&(state==data_in)) begin 
         if (bram_in_waddr==`bram_depth_in-1) begin
             bram_in_waddr <= 'b0;
             state <= calculate;
@@ -77,10 +82,14 @@ always@(posedge clk)begin
             if(bram_in_raddr == `bram_depth_in-1) begin
                 bram_in_raddr <= 1'b0;
                 state <= data_in;
+                input_ready <= 1'b1;
             end
             else begin
                 bram_in_raddr <= bram_in_raddr+1'b1;
             end
+        end
+        else begin
+            se_bram_read_data <= bram_read_data[255:128];
         end
     end
 end
@@ -96,7 +105,7 @@ always@(posedge clk)begin
             cnt_output <= cnt_output+1;
         end
         if( (cnt_output==2048) && (mode==2'd3) ) stop <= 1;
-        else if( (cnt_output==2048) && ((mode==2'd2)||(mode==2'd1)) ) stop <= 1;
+        else if( (cnt_output==1024) && ((mode==2'd2)||(mode==2'd1)) ) stop <= 1;
         else if( (cnt_output==512) && (mode==2'd0) ) stop <= 1;
     end
 end
@@ -142,7 +151,4 @@ endmodule
 //    .wr_addr(bram_in_waddr),
 //    .wr_data(interface_in)
 //  );
-
-
-
 

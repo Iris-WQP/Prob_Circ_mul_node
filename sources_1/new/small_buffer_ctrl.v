@@ -27,7 +27,7 @@ module small_buffer_ctrl(
      input input_vld,
      output reg input_ready,
      input [1:0] mode,
-     output [127:0] interface_out,
+     output [63:0] interface_out,
      output output_vld,
      output reg [1:0] state,
      
@@ -46,13 +46,12 @@ module small_buffer_ctrl(
    output reg fi_read,
    output reg [`small_log2_bram_depth_in-1:0] bram_in_waddr,
    output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr
-   ,
-                output  [256-1:0] bram_sample_0,                
-                output  [256-1:0] bram_sample_1,                
-                output  [256-1:0] bram_sample_254,
-                output  [256-1:0] bram_sample_255
-     
-    );
+//   ,
+//                output  [256-1:0] bram_sample_0,                
+//                output  [256-1:0] bram_sample_1,                
+//                output  [256-1:0] bram_sample_254,
+//                output  [256-1:0] bram_sample_255
+     );
     
 
 parameter data_in = 2'd0,
@@ -112,26 +111,55 @@ always@(posedge clk)begin
     end
 end
 
-wire [7:0] higher_exponent;
-assign higher_exponent = (max_exponent < interface_out[14:7])? interface_out[14:7]:max_exponent;
+reg last_c_01;
+reg last_c_2;
 reg [10:0] cnt_output;
+wire [7:0] higher_exponent;
+reg [7:0] compare_tree [2:0];
+wire [7:0] compare_tree_wire [2:0];
+assign compare_tree_wire[0] = (interface_out[14:7]>interface_out[30:23])?interface_out[14:7]:interface_out[30:23];
+assign compare_tree_wire[1] = (interface_out[46:39]>interface_out[62:55])?interface_out[46:39]:interface_out[62:55];
+assign compare_tree_wire[2] = (compare_tree[0]>compare_tree[1])?compare_tree[0]:compare_tree[1];
+assign higher_exponent = (max_exponent < compare_tree[2])? compare_tree[2]:max_exponent;
 
 always@(posedge clk)begin
     if(rst) begin
          cnt_output <= 11'h000;
          max_exponent_vld <= 1'b0;
          max_exponent <= 8'h00;
+         compare_tree[0] <= 8'h00;
+         compare_tree[1] <= 8'h00;
+         compare_tree[2] <= 8'h00;
+         last_c_01 <= 1'b0;
+         last_c_2 <= 1'b0;
     end
     else begin
         if (output_vld==1'b1 && max_exponent_vld==1'b0)begin
             if(cnt_output==(num_of_line_per_node_minusone))begin
                 cnt_output <= 11'h000;
-                max_exponent_vld <= 1'b1;
+                compare_tree[0] <= compare_tree_wire[0];
+                compare_tree[1] <= compare_tree_wire[1];
+                compare_tree[2] <= compare_tree_wire[2];
                 max_exponent <= higher_exponent;
+                last_c_01 <= 1'b1;
             end else begin
                 cnt_output <= cnt_output+1;
+                compare_tree[0] <= compare_tree_wire[0];
+                compare_tree[1] <= compare_tree_wire[1];
+                compare_tree[2] <= compare_tree_wire[2];
                 max_exponent <= higher_exponent;
             end
+        end
+        if (last_c_01 == 1'b1)begin
+           compare_tree[2] <= compare_tree_wire[2];
+           max_exponent <= higher_exponent;
+           last_c_2 <= 1'b1; 
+           last_c_01 <= 1'b0;
+        end
+        if (last_c_2 == 1'b1)begin
+           max_exponent <= higher_exponent;
+           max_exponent_vld <= 1'b1; 
+           last_c_2 <= 1'b0;        
         end
         if(max_exponent_vld==1'b1)begin
             max_exponent <= 8'h00;
@@ -155,11 +183,12 @@ BRAM #(
     .rd_data_vld(mul_stb),
     .we(bram_in_we),       //write enable
     .wr_addr(bram_in_waddr),
-    .wr_data(bram_in_wdata),
-    .bram_sample_0(bram_sample_0),                
-    .bram_sample_1(bram_sample_1),                
-    .bram_sample_254(bram_sample_254),
-    .bram_sample_255(bram_sample_255)
+    .wr_data(bram_in_wdata)
+//    ,
+//    .bram_sample_0(bram_sample_0),                
+//    .bram_sample_1(bram_sample_1),                
+//    .bram_sample_254(bram_sample_254),
+//    .bram_sample_255(bram_sample_255)
   );
 
 mul_tree_bf16 dut(

@@ -8,7 +8,8 @@
       "tool_version": "2018.3"
     },
     "design_tree": {
-      "processing_system7_0": ""
+      "processing_system7_0": "",
+      "mig_7series_0": ""
     },
     "components": {
       "processing_system7_0": {
@@ -22,6 +23,10 @@
             "value": "1"
           }
         }
+      },
+      "mig_7series_0": {
+        "vlnv": "xilinx.com:ip:mig_7series:4.2",
+        "xci_name": "design_1_mig_7series_0_0"
       }
     },
     "addressing": {

@@ -23,7 +23,7 @@ module MEM_input#
 (
 	parameter WIDTH=64,
 	parameter DEPTH=32,
-	parameter log2_DEPTH=6
+	parameter log2_DEPTH=32
 )
 (
     input clk,

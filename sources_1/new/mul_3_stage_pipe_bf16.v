@@ -136,7 +136,7 @@ module mul_3_stage_pipe_bf16(
           z[14:0] <= 15'd0;
         end else if ($signed(z_e) > 126)begin
           z[14:0] <= 15'b111111110000000;
-        end else if (z_m[7] == 0) begin 
+        end else if (z_m[7] == 0) begin //highest mentissa is not 1
           if (sticky_judge[6] & (new_sticky | guard)) begin //round
             z[6:0] <= {z_m[5:0], guard} + 1;
               if ({z_m[5:0], guard} == 8'hff) begin
