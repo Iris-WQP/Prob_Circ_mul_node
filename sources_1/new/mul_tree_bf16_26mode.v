@@ -81,7 +81,7 @@ assign input_apply[4][15:0] = org_outputs[0];
 assign input_apply[4][31:16] = org_outputs[1];
 assign input_apply[5][15:0] = org_outputs[2];
 //assign input_apply[5][31:16] = org_outputs[3];
-assign input_apply[5][31:16] = (mode==three_in)?16'b0011111110000000:org_outputs[3];
+assign input_apply[5][31:16] = (mode==six_in)?16'b0011111110000000:org_outputs[3];
 assign input_apply[6][15:0] = org_outputs[4];
 assign input_apply[6][31:16] = org_outputs[5];
 
