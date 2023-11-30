@@ -22,14 +22,13 @@
 module small_buffer_ctrl(
      input clk,
      input rst,
-     input [255:0] interface_in,
-     output reg [255:0] bram_in_wdata,
+     input [255:0] interface_in,//[127:0]
      input input_vld,
      output reg input_ready,
      input [1:0] mode,
      output [63:0] interface_out,
      output output_vld,
-     output reg [1:0] state,
+
      
      //calculate max exponent
      input [10:0] num_of_line_per_node_minusone,
@@ -37,6 +36,8 @@ module small_buffer_ctrl(
      output reg max_exponent_vld,
      
 //     debug
+     output reg [255:0] bram_in_wdata,
+     output reg [1:0] state,
      output bram_in_we,
     output bram_in_re,
     output reg [127:0]se_bram_read_data,
