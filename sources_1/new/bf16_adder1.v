@@ -20,14 +20,14 @@ module bf16_adder1(
     wire a_e_bigger, b_e_bigger, a_m_bigger;
     wire [7:0] e_diff;
     wire [7:0] z_e_temp; //z_e before normalization
-    wire [7:0] z_e_tp;
-    wire [10:0] z_e;
+    reg [7:0] z_e_tp; //z_e before round
+    reg [10:0] z_e;
     wire [11:0] sum_fraction_tmp;
     wire [11:0] sum_fraction;
-    wire [7:0] unrounded_fraction;
-    wire [7:0] rounded_fraction;
+    reg [7:0] unrounded_fraction;
+    reg [7:0] rounded_fraction;
     wire [3:0] lead_zero_cnt;
-    wire guard, round_bit, sticky;
+    reg guard, round_bit, sticky;
 
 
 /*--------------------- step0: handle subnormal case for mantissa ---------------------------*/
@@ -44,7 +44,7 @@ module bf16_adder1(
     assign a_e_bigger = (a_e > b_e);
     assign b_e_bigger = (a_e < b_e); //in case of equal
     assign z_e_temp = (a_e_bigger) ? a_e : b_e;
-    assign e_diff = (a_e_bigger) ? (a_exponent - b_exponent) : (b_exponent - a_exponent);
+    assign e_diff = (a_e_bigger) ? (a_e - b_e) : (b_e - a_e);
 
 //shift the mantissa of the smaller number
     assign a_shift_m = (a_e_bigger) ? a_extend_m : (a_extend_m >> e_diff);
