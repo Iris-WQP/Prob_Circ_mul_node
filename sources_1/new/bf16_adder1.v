@@ -8,26 +8,33 @@ module bf16_adder1(
         input b_vld,
         
         output reg [15:0] z,
-        output z_vld
+        output z_vld,
+        
+        
+  output  wire a_s,
+  output  wire b_s,
+  output  wire z_s,
+  output  wire [9:0] a_e, b_e,
+  output  wire [10:0] a_extend_m, b_extend_m,
+  output  wire [10:0] a_shift_m, b_shift_m,
+  output  wire a_e_bigger, b_e_bigger, a_m_bigger,
+  output  wire [7:0] e_diff,
+  output  wire [7:0] z_e_temp, //z_e before normalization
+  output  reg [7:0] z_e_tp, //z_e before round
+  output  reg [10:0] z_e,
+  output  wire [11:0] sum_fraction_tmp,
+  output  wire [11:0] sum_fraction,
+  output  reg [7:0] unrounded_fraction,
+  output  reg [7:0] rounded_fraction,
+  output  wire [3:0] lead_zero_cnt,
+  output  reg guard,
+  output  reg round_bit, 
+  output  reg sticky
     );
     
     assign z_vld = a_vld & b_vld;
 
-    wire a_s, b_s, z_s;
-    wire [9:0] a_e, b_e;
-    wire [10:0] a_extend_m, b_extend_m;
-    wire [10:0] a_shift_m, b_shift_m;
-    wire a_e_bigger, b_e_bigger, a_m_bigger;
-    wire [7:0] e_diff;
-    wire [7:0] z_e_temp; //z_e before normalization
-    reg [7:0] z_e_tp; //z_e before round
-    reg [10:0] z_e;
-    wire [11:0] sum_fraction_tmp;
-    wire [11:0] sum_fraction;
-    reg [7:0] unrounded_fraction;
-    reg [7:0] rounded_fraction;
-    wire [3:0] lead_zero_cnt;
-    reg guard, round_bit, sticky;
+
 
 
 /*--------------------- step0: handle subnormal case for mantissa ---------------------------*/
@@ -89,12 +96,15 @@ always @(*) begin
 
     //round
     if (guard && (round_bit | sticky | unrounded_fraction[0])) begin
-      rounded_fraction <= unrounded_fraction + 1;
+      rounded_fraction = unrounded_fraction + 1;
       if (unrounded_fraction == 24'hffffff) begin
-        z_e <=z_e_tp + 1;
+        z_e = z_e_tp + 1;
       end else begin
-        z_e <= z_e_tp;
+        z_e = z_e_tp;
       end
+    end else begin
+        rounded_fraction = unrounded_fraction;
+        z_e = z_e_tp;
     end
   end
 
