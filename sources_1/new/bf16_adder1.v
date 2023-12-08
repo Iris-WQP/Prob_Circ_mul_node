@@ -8,33 +8,57 @@ module bf16_adder1(
         input b_vld,
         
         output reg [15:0] z,
-        output z_vld,
+        output z_vld
         
-        
-  output  wire a_s,
-  output  wire b_s,
-  output  wire z_s,
-  output  wire [9:0] a_e, b_e,
-  output  wire [10:0] a_extend_m, b_extend_m,
-  output  wire [10:0] a_shift_m, b_shift_m,
-  output  wire a_e_bigger, b_e_bigger, a_m_bigger,
-  output  wire [7:0] e_diff,
-  output  wire [7:0] z_e_temp, //z_e before normalization
-  output  reg [7:0] z_e_tp, //z_e before round
-  output  reg [10:0] z_e,
-  output  wire [11:0] sum_fraction_tmp,
-  output  wire [11:0] sum_fraction,
-  output  reg [7:0] unrounded_fraction,
-  output  reg [7:0] rounded_fraction,
-  output  wire [3:0] lead_zero_cnt,
-  output  reg guard,
-  output  reg round_bit, 
-  output  reg sticky
+//   //debug
+//   ,
+//   output  wire a_s,
+//   output  wire b_s,
+//   output  wire z_s,
+//   output  wire [9:0] a_e, b_e,
+//   output  wire [10:0] a_extend_m, b_extend_m,
+//   output  wire [10:0] a_shift_m, b_shift_m,
+//   output  wire a_e_bigger, b_e_bigger, a_m_bigger,
+//   output  wire [7:0] e_diff,
+//   output  wire [7:0] z_e_temp, //z_e before normalization
+//   output  reg [7:0] z_e_tp, //z_e before round
+//   output  reg [10:0] z_e,
+//   output  wire [11:0] sum_fraction,
+//   output  reg [10:0] sum_fraction_tmp,
+//   output  wire [6:0] unrounded_fraction,
+//   output  reg [6:0] rounded_fraction,
+//   output  wire [3:0] lead_zero_cnt,
+//   output  reg guard,
+//   output  reg round_bit, 
+//   output  reg sticky
     );
+    
+
+wire a_s;
+wire b_s;
+wire z_s;
+wire [9:0] a_e, b_e;
+wire [10:0] a_extend_m, b_extend_m;
+wire [10:0] a_shift_m, b_shift_m;
+wire a_e_bigger, b_e_bigger, a_m_bigger;
+wire [7:0] e_diff;
+wire [7:0] z_e_temp;
+//z_e before normalization;
+reg [7:0] z_e_tp;
+//z_e before round;
+reg [10:0] z_e;
+wire [11:0] sum_fraction;
+reg [10:0] sum_fraction_tmp;
+wire [6:0] unrounded_fraction;
+reg [6:0] rounded_fraction;
+wire [3:0] lead_zero_cnt;
+reg guard;
+reg round_bit;
+reg sticky;
     
     assign z_vld = a_vld & b_vld;
 
-
+wire [10:0] middle_fraction;
 
 
 /*--------------------- step0: handle subnormal case for mantissa ---------------------------*/
@@ -44,7 +68,6 @@ module bf16_adder1(
     assign b_e = b[14:7];
     assign a_extend_m = (a_e == 8'd0) ? {1'b0, a[6:0], 3'd0} : {1'b1, a[6:0], 3'd0};
     assign b_extend_m = (b_e == 8'd0) ? {1'b0, b[6:0], 3'd0} : {1'b1, b[6:0], 3'd0};
-    assign a_m_bigger = (a_extend_m > b_extend_m);
 
 /*------------------ step1: compare exponent, shift mantissa ------------------*/
 //handle exponent
@@ -56,13 +79,14 @@ module bf16_adder1(
 //shift the mantissa of the smaller number
     assign a_shift_m = (a_e_bigger) ? a_extend_m : (a_extend_m >> e_diff);
     assign b_shift_m = (b_e_bigger) ? b_extend_m : (b_extend_m >> e_diff);
-    
+    assign a_m_bigger = a_shift_m > b_shift_m;
 /*-------------- step2: add mantissa, handle carry and lead zero ------------------*/
     assign z_s = a_e_bigger ? a_s
                     : b_e_bigger ? b_s
                     : a_m_bigger ? a_s
                     : b_s;
-    assign sum_fraction_tmp = (a_s == b_s) ? (a_shift_m + b_shift_m) 
+                    
+    assign sum_fraction = (a_s == b_s) ? (a_shift_m + b_shift_m) 
                       : a_m_bigger ? (a_shift_m - b_shift_m)
                       : (b_shift_m - a_shift_m);
     assign lead_zero_cnt = (sum_fraction_tmp[10] == 1) ? 0
@@ -77,27 +101,26 @@ module bf16_adder1(
                     : (sum_fraction_tmp[1] == 1) ? 9
                     : (sum_fraction_tmp[0] == 1) ? 10
                     : 11;
-    assign sum_fraction = sum_fraction_tmp << lead_zero_cnt;
+    assign middle_fraction = (sum_fraction_tmp << lead_zero_cnt);
+    assign unrounded_fraction = middle_fraction[9:3];
 
 always @(*) begin
+    guard = sum_fraction_tmp[2];
+    round_bit = sum_fraction_tmp[1];
+    sticky = sum_fraction_tmp[0];
     if(sum_fraction[11])begin
-        unrounded_fraction = sum_fraction[10:4];
-        guard = sum_fraction[3];
-        round_bit = sum_fraction[2];
-        sticky = sum_fraction[1] | sum_fraction[0];
+        sum_fraction_tmp = sum_fraction >> 1;
         z_e_tp = z_e_temp - lead_zero_cnt + 1;
     end else begin
-        unrounded_fraction = sum_fraction[9:3];
-        guard = sum_fraction[2];
-        round_bit = sum_fraction[1];
-        sticky = sum_fraction[0];
+        sum_fraction_tmp = sum_fraction;
         z_e_tp = z_e_temp - lead_zero_cnt;
     end
 
     //round
-    if (guard && (round_bit | sticky | unrounded_fraction[0])) begin
+//    if (guard && (round_bit | sticky | unrounded_fraction[0])) begin
+    if (guard && (round_bit | sticky)) begin
       rounded_fraction = unrounded_fraction + 1;
-      if (unrounded_fraction == 24'hffffff) begin
+      if (unrounded_fraction == 6'b111111) begin
         z_e = z_e_tp + 1;
       end else begin
         z_e = z_e_tp;
@@ -109,9 +132,6 @@ always @(*) begin
   end
 
 /*------------------ step3: handle special cases ------------------*/
-// //judge NaN and inf
-//     assign if_nan = (a_e == 128 && a_extend_m[6:0] != 0) || (b_e == 128 && b_extend_m[6:0] != 0)
-//     assign if_inf = (a_e == 128 && a_extend_m[6:0] == 0) || (b_e == 128 && b_extend_m[6:0] == 0)
 
 always @(*) begin
     //if a is NaN or b is NaN return NaN 
@@ -137,6 +157,23 @@ always @(*) begin
         z[15] = b_s;
         z[14:7] = 255;
         z[6:0] = 0;
+    end else begin
+        z[15] = z_s;
+        //if overflow occurs, return inf
+        if (z_e > 254) begin
+          z[6 : 0] = 0;
+          z[14 : 7] = 255;
+        end else begin
+          z[6 : 0] = rounded_fraction;
+          z[14 : 7] = z_e[7:0];
+        end
+    end
+end
+
+
+endmodule
+
+
     // //both zero
     // end else if ((($signed(a_e) == -127) && (a_m == 0)) && (($signed(b_e) == -127) && (b_m == 0))) begin
     //     z[15] = a_s & b_s;
@@ -147,18 +184,3 @@ always @(*) begin
     // //if a is zero return b
     // end else if (($signed(a_e) == -127) && (a_m == 0)) begin
     //     z = b;
-    end else begin
-        z[15] = z_s;
-        //if overflow occurs, return inf
-        if (z_e > 254) begin
-          z[6 : 0] = 0;
-          z[14 : 7] = 255;
-        end else begin
-          z[6 : 0] = rounded_fraction[6:0];
-          z[14 : 7] = z_e[7:0];
-        end
-    end
-end
-
-
-endmodule
