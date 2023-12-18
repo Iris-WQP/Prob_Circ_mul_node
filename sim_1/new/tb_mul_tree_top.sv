@@ -38,22 +38,22 @@ wire input_ready;
   wire[7:0] max_exponent;
   wire max_exponent_vld;
   
-  //debug
-wire [1:0] state;
-wire [255:0] bram_in_wdata;
-wire bram_in_we;
-wire bram_in_re;
-wire [127:0]se_bram_read_data;
-wire [255:0]bram_read_data;
-wire [127:0] mul_in;
-wire mul_stb;
-wire fi_read;
-wire [`small_log2_bram_depth_in-1:0] bram_in_waddr;
-wire [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+//  //debug
+//wire [1:0] state;
+//wire [`bram_in_width-1:0] bram_in_wdata;
+//wire bram_in_we;
+//wire bram_in_re;
+//wire [127:0]se_bram_read_data;
+//wire [`bram_in_width-1:0]bram_read_data;
+//wire [127:0] mul_in;
+//wire mul_stb;
+//wire fi_read;
+//wire [`small_log2_bram_depth_in-1:0] bram_in_waddr;
+//wire [`small_log2_bram_depth_in-1:0] bram_in_raddr;
 
-wire [7:0] compare_tree0;
-wire [7:0] compare_tree1;
-wire [7:0] compare_tree2;
+//wire [7:0] compare_tree0;
+//wire [7:0] compare_tree1;
+//wire [7:0] compare_tree2;
 
 //wire  [256-1:0] bram_sample_0;                
 //wire  [256-1:0] bram_sample_1;                
@@ -79,7 +79,7 @@ initial begin
   end
      @(posedge clk) input_vld = 0;
 repeat (6) begin
-    #5110
+    #(`bram_in_width*20)
     repeat(256)begin
        begin
         @(posedge clk)begin
@@ -90,9 +90,9 @@ repeat (6) begin
        #10 i=i+1;
   end
   @(posedge clk) input_vld = 0;
+end
   #100 max_exponent_ready <= 1;
   #110 max_exponent_ready <= 0;
-end
 end
   
   initial
@@ -156,22 +156,22 @@ end
         .max_exponent_vld(max_exponent_vld)
         
         //debug
-        ,
-    .state(state),
-    .bram_in_wdata(bram_in_wdata),
-    .bram_in_we(bram_in_we),
-    .bram_in_re(bram_in_re),
-    .se_bram_read_data(se_bram_read_data),
-    .bram_read_data(bram_read_data),
-    .mul_in(mul_in),
-    .mul_stb(mul_stb),
-    .fi_read(fi_read),
-    .cnt_output(),
-    .bram_in_waddr(bram_in_waddr),
-    .bram_in_raddr(bram_in_raddr),
-    .compare_tree0(compare_tree0),
-    .compare_tree1(compare_tree1),
-    .compare_tree2(compare_tree2)
+//        ,
+//    .state(state),
+//    .bram_in_wdata(bram_in_wdata),
+//    .bram_in_we(bram_in_we),
+//    .bram_in_re(bram_in_re),
+//    .se_bram_read_data(se_bram_read_data),
+//    .bram_read_data(bram_read_data),
+//    .mul_in(mul_in),
+//    .mul_stb(mul_stb),
+//    .fi_read(fi_read),
+//    .cnt_output(),
+//    .bram_in_waddr(bram_in_waddr),
+//    .bram_in_raddr(bram_in_raddr),
+//    .compare_tree0(compare_tree0),
+//    .compare_tree1(compare_tree1),
+//    .compare_tree2(compare_tree2)
     
 //    ,
 //    .bram_sample_0(bram_sample_0),                

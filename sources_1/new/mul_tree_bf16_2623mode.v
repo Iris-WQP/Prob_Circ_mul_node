@@ -29,10 +29,10 @@ module mul_tree_bf16_2623mode(
         output reg [3:0] final_output_stbs_1
     );
 
-        //mode00 ---- two inputs
-        //mode01 ---- three inputs
-        //mode10 ---- four inputs
-        //mode11 ---- six/two inputs      
+        //mode00 ---- two-in
+        //mode01 ---- three-in
+        //mode10 ---- four-in
+        //mode11 ---- six-in
 
   parameter 
             two_in     = 2'd0,
@@ -81,7 +81,7 @@ assign input_apply[4][15:0] = org_outputs[0];
 assign input_apply[4][31:16] = org_outputs[1];
 assign input_apply[5][15:0] = org_outputs[2];
 //assign input_apply[5][31:16] = org_outputs[3];
-assign input_apply[5][31:16] = (mode==three_in)?16'b0011111110000000:org_outputs[3];
+assign input_apply[5][31:16] = (mode==six_in)?16'b0011111110000000:org_outputs[3];
 assign input_apply[6][15:0] = (mode==three_in)?mul_ins[(2*32-1):(32+16)]:org_outputs[4];
 assign input_apply[6][31:16] = (mode==three_in)?mul_ins[(4*32-1):(3*32+16)]:org_outputs[5];
 
@@ -97,7 +97,7 @@ always @(*)   begin
          outputs = {16'd0,org_outputs[6], org_outputs[5], org_outputs[4]};     
      end else if (mode==six_in) begin
          final_output_stbs = {2'b00,org_output_stbs[3],org_output_stbs[6]};
-         outputs = {32'd0, org_output_stbs[3],org_outputs[6]};
+         outputs = {32'd0, org_outputs[3],org_outputs[6]};
      end
 end
 

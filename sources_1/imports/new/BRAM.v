@@ -21,7 +21,7 @@
 `include "defines.vh"
 module BRAM #    //only one bram install all data
              (   parameter ADDR_WIDTH = `log2_bram_depth_in,
-                 parameter DATA_WIDTH = 256,
+                 parameter DATA_WIDTH = `bram_in_width,
                  parameter      DEPTH = `bram_depth_in)
              (
                 input clk,

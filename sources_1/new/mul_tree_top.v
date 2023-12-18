@@ -36,23 +36,23 @@ module mul_tree_top(
      output reg max_exponent_vld
      
      //     debug
-     ,
-     output reg [255:0] bram_in_wdata,
-     output reg [1:0] state,
-     output bram_in_we,
-     output bram_in_re,
-     output reg [127:0]se_bram_read_data,
-     output wire [255:0]bram_read_data,
-     output wire [127:0] mul_in,
-     output wire mul_stb,
-     output wire bram_out_valid,
-     output reg fi_read,
-     output reg [`small_log2_bram_depth_in-1:0] bram_in_waddr,
-     output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr,
-     output reg [10:0] cnt_output,
-     output [7:0] compare_tree0,
-     output [7:0] compare_tree1,
-     output [7:0] compare_tree2
+//     ,
+//     output reg [255:0] bram_in_wdata,
+//     output reg [1:0] state,
+//     output bram_in_we,
+//     output bram_in_re,
+//     output reg [127:0]se_bram_read_data,
+//     output wire [`bram_in_width-1:0] bram_read_data,
+//     output wire [127:0] mul_in,
+//     output wire mul_stb,
+//     output wire bram_out_valid,
+//     output reg fi_read,
+//     output reg [`small_log2_bram_depth_in-1:0] bram_in_waddr,
+//     output reg [`small_log2_bram_depth_in-1:0] bram_in_raddr,
+//     output reg [10:0] cnt_output,
+//     output [7:0] compare_tree0,
+//     output [7:0] compare_tree1,
+//     output [7:0] compare_tree2
 //   ,
 //                output  [256-1:0] bram_sample_0,                
 //                output  [256-1:0] bram_sample_1,                
@@ -66,28 +66,31 @@ parameter    data_in = 2'd0,
              data_out = 2'd2,
              stop_work = 2'd3;
     
-//reg [`bram_in_width-1:0] bram_in_wdata;
-//reg [1:0] state;
-//wire bram_in_we;
-//wire bram_in_re;
-//reg [127:0]se_bram_read_data;
-//wire [255:0]bram_read_data;
-//wire [127:0] mul_in;
-//wire mul_stb;
-//wire bram_out_valid;
-//reg fi_read;
-//reg [`small_log2_bram_depth_in-1:0] bram_in_waddr;
-//reg [`small_log2_bram_depth_in-1:0] bram_in_raddr;
-//reg [10:0] cnt_output;
+reg [`bram_in_width-1:0] bram_in_wdata;
+reg [1:0] state;
+wire bram_in_we;
+wire bram_in_re;
+reg [127:0]se_bram_read_data;
+wire [`bram_in_width-1:0]bram_read_data;
+wire [127:0] mul_in;
+wire mul_stb;
+wire bram_out_valid;
+reg fi_read;
+reg [`small_log2_bram_depth_in-1:0] bram_in_waddr;
+reg [`small_log2_bram_depth_in-1:0] bram_in_raddr;
+reg [10:0] cnt_output;
 //wire [7:0] compare_tree0;
 //wire [7:0] compare_tree1;
 //wire [7:0] compare_tree2;
+//  assign  compare_tree0 = compare_tree[0];
+//  assign  compare_tree1 = compare_tree[1];
+//  assign  compare_tree2 = compare_tree[2];
 
 reg state_change;
 assign bram_in_we = input_vld&input_ready&(state==data_in);
 assign bram_in_re = (fi_read&&(state==calculate));
-assign mul_in = (fi_read)? se_bram_read_data:bram_read_data[127:0];
-assign mul_stb = (bram_out_valid | fi_read)&(state==calculate);
+assign mul_in = (fi_read&`big_interface)? se_bram_read_data:bram_read_data[127:0];
+assign mul_stb = (bram_out_valid | (fi_read&`big_interface))&(state==calculate);
 
 always@(posedge clk) bram_in_wdata <= interface_in;
 
@@ -99,6 +102,7 @@ always@(posedge clk)begin
         input_ready <= 1'b1;
         fi_read <= 1'b1;
         state_change <= 1'b0;
+        se_bram_read_data <= 'b0;
     end
     else if(state==2'b00) begin
         if (bram_in_waddr==`small_bram_depth_in-1) begin
@@ -106,12 +110,12 @@ always@(posedge clk)begin
             state <= calculate;
             input_ready <= 1'b0;
         end
-        else begin
+        else if(input_vld&input_ready) begin
             bram_in_waddr <= bram_in_waddr+1'b1;
         end
     end
     else if(state==calculate)begin
-        fi_read <= ~fi_read;
+        if(`big_interface) fi_read <= ~fi_read;
         if (state_change) begin
             state <= data_in;
             input_ready <= 1'b1;
@@ -120,7 +124,13 @@ always@(posedge clk)begin
         end
         if(fi_read)begin
             if(bram_in_raddr == `small_bram_depth_in-1) begin
-                state_change <= 1'b1;
+                if(`big_interface) state_change <= 1'b1;
+                else begin
+                    state <= data_in;
+                    input_ready <= 1'b1;
+                    bram_in_raddr <= 1'b0;
+                    state_change <= 1'b0;                    
+                end
             end
             else begin
                 bram_in_raddr <= bram_in_raddr+1'b1;
@@ -132,8 +142,8 @@ always@(posedge clk)begin
     end
 end
 
-reg last_c_01;
-reg last_c_2;
+//reg last_c_01;
+//reg last_c_2;
 
 /*------------------ compare tree ------------------------*/
 wire [7:0] higher_exponent;
@@ -151,8 +161,8 @@ always@(posedge clk)begin
          compare_tree[0] <= 8'h00;
          compare_tree[1] <= 8'h00;
          compare_tree[2] <= 8'h00;
-         last_c_01 <= 1'b0;
-         last_c_2 <= 1'b0;
+//         last_c_01 <= 1'b0;
+//         last_c_2 <= 1'b0;
     end
     else begin
            if (output_vld==1'b1)begin
@@ -182,7 +192,7 @@ end
    
 BRAM #(
     .ADDR_WIDTH(`small_log2_bram_depth_in),
-    .DATA_WIDTH (256),
+    .DATA_WIDTH (`bram_in_width),
     .DEPTH (`small_bram_depth_in)
   ) small_bram (
     .clk(clk),
@@ -210,7 +220,5 @@ mul_tree_bf16_12 dut(
         .final_output_stbs_1(output_vld)      //output z valid
 );
     
-  assign  compare_tree0 = compare_tree[0];
-  assign  compare_tree1 = compare_tree[1];
-  assign  compare_tree2 = compare_tree[2];
+
 endmodule  

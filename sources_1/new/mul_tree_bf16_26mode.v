@@ -94,7 +94,7 @@ always @(*)   begin
          outputs = {32'd0, org_outputs[5], org_outputs[4]};
      end else if (mode==six_in) begin
          final_output_stbs = {2'b00,org_output_stbs[3],org_output_stbs[6]};
-         outputs = {32'd0, org_output_stbs[3],org_outputs[6]};
+         outputs = {32'd0, org_outputs[3],org_outputs[6]};
      end
 end
 
