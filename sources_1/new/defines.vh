@@ -1,3 +1,7 @@
+`define bram_in_width 256
+`define big_interface 1     //(`bram_in_width==256)
+//`define bram_in_width 128
+//`define big_interface 0     //1(`bram_in_width==128)
 `define DW 16     //BF16
 `define Tin 8
 `define Tout 4
