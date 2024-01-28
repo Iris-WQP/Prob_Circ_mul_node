@@ -10,71 +10,71 @@ module bf16_adder1(
         output reg [15:0] z,
         output z_vld
         
-//   //debug
-//   ,
-//   output  wire a_s,
-//   output  wire b_s,
-//   output  wire z_s,
-//   output  wire [9:0] a_e, b_e,
-//   output  wire [10:0] a_extend_m, b_extend_m,
-//   output  wire [10:0] a_shift_m, b_shift_m,
-//   output  wire a_e_bigger, b_e_bigger, a_m_bigger,
-//   output  wire [7:0] e_diff,
-//   output  wire [7:0] z_e_temp, //z_e before normalization
-//   output  reg [7:0] z_e_tp, //z_e before round
-//   output  reg [10:0] z_e,
-//   output  wire [11:0] sum_fraction,
-//   output  reg [10:0] sum_fraction_tmp,
-//   output  wire [6:0] unrounded_fraction,
-//   output  reg [6:0] rounded_fraction,
-//   output  wire [3:0] lead_zero_cnt,
-//   output  reg guard,
-//   output  reg round_bit, 
-//   output  reg sticky
+   //debug
+   ,
+   output  wire a_s,
+   output  wire b_s,
+   output  wire z_s,
+   output  wire [9:0] a_e, b_e,
+   output  wire [10:0] a_extend_m, b_extend_m,
+   output  wire [10:0] a_shift_m, b_shift_m,
+   output  wire a_e_bigger, b_e_bigger, a_m_bigger,
+   output  wire [7:0] e_diff,
+   output  wire [7:0] z_e_temp, //z_e before normalization
+   output  reg [7:0] z_e_tp, //z_e before round
+   output  reg [10:0] z_e,
+   output  wire [11:0] sum_fraction,
+   output  reg [10:0] sum_fraction_tmp,
+   output  wire [6:0] unrounded_fraction,
+   output  reg [6:0] rounded_fraction,
+   output  wire [3:0] lead_zero_cnt,
+   output  reg guard,
+   output  reg round_bit, 
+   output  reg sticky
     );
     
 
-wire a_s;
-wire b_s;
-wire z_s;
-wire [9:0] a_e, b_e;
-wire [10:0] a_extend_m, b_extend_m;
-wire [10:0] a_shift_m, b_shift_m;
-wire a_e_bigger, b_e_bigger, a_m_bigger;
-wire [7:0] e_diff;
-wire [7:0] z_e_temp;
-//z_e before normalization;
-reg [7:0] z_e_tp;
-//z_e before round;
-reg [10:0] z_e;
-wire [11:0] sum_fraction;
-reg [10:0] sum_fraction_tmp;
-wire [6:0] unrounded_fraction;
-reg [6:0] rounded_fraction;
-wire [3:0] lead_zero_cnt;
-reg guard;
-reg round_bit;
-reg sticky;
-    
-    assign z_vld = a_vld & b_vld;
+//wire a_s;
+//wire b_s;
+//wire z_s;
+//wire [9:0] a_e, b_e;
+//wire [10:0] a_extend_m, b_extend_m;
+//wire [10:0] a_shift_m, b_shift_m;
+//wire a_e_bigger, b_e_bigger, a_m_bigger;
+//wire [7:0] e_diff;
+//wire [7:0] z_e_temp;
+////z_e before normalization;
+//reg [7:0] z_e_tp;
+////z_e before round;
+//reg [10:0] z_e;
+//wire [11:0] sum_fraction;
+//reg [10:0] sum_fraction_tmp;
+//wire [6:0] unrounded_fraction;
+//reg [6:0] rounded_fraction;
+//wire [3:0] lead_zero_cnt;
+//reg guard;
+//reg round_bit;
+//reg sticky;
+wire new_sub;
+assign z_vld = a_vld & b_vld;
 
 wire [10:0] middle_fraction;
 
 
 /*--------------------- step0: handle subnormal case for mantissa ---------------------------*/
-    assign a_s = a[15];
-    assign b_s = b[15];
-    assign a_e = a[14:7];
-    assign b_e = b[14:7];
-    assign a_extend_m = (a_e == 8'd0) ? {1'b0, a[6:0], 3'd0} : {1'b1, a[6:0], 3'd0};
-    assign b_extend_m = (b_e == 8'd0) ? {1'b0, b[6:0], 3'd0} : {1'b1, b[6:0], 3'd0};
+    assign a_s = a[15];  //0
+    assign b_s = b[15];  //0
+    assign a_e = a[14:7];  //0
+    assign b_e = b[14:7];  //0
+    assign a_extend_m = (a_e == 8'd0) ? {1'b0, a[6:0], 3'd0} : {1'b1, a[6:0], 3'd0};  //0
+    assign b_extend_m = (b_e == 8'd0) ? {1'b0, b[6:0], 3'd0} : {1'b1, b[6:0], 3'd0};  //0
 
 /*------------------ step1: compare exponent, shift mantissa ------------------*/
 //handle exponent
     assign a_e_bigger = (a_e > b_e);
     assign b_e_bigger = (a_e < b_e); //in case of equal
-    assign z_e_temp = (a_e_bigger) ? a_e : b_e;
-    assign e_diff = (a_e_bigger) ? (a_e - b_e) : (b_e - a_e);
+    assign z_e_temp = (a_e_bigger) ? a_e : b_e; //0
+    assign e_diff = (a_e_bigger) ? (a_e - b_e) : (b_e - a_e);//0
 
 //shift the mantissa of the smaller number
     assign a_shift_m = (a_e_bigger) ? a_extend_m : (a_extend_m >> e_diff);
@@ -101,7 +101,8 @@ wire [10:0] middle_fraction;
                     : (sum_fraction_tmp[1] == 1) ? 9
                     : (sum_fraction_tmp[0] == 1) ? 10
                     : 11;
-    assign middle_fraction = (sum_fraction_tmp << lead_zero_cnt);
+    assign new_sub = z_e_temp < lead_zero_cnt;
+    assign middle_fraction = new_sub? sum_fraction_tmp : (sum_fraction_tmp << lead_zero_cnt);
     assign unrounded_fraction = middle_fraction[9:3];
 
 always @(*) begin
@@ -110,10 +111,10 @@ always @(*) begin
     sticky = sum_fraction_tmp[0];
     if(sum_fraction[11])begin
         sum_fraction_tmp = sum_fraction >> 1;
-        z_e_tp = z_e_temp - lead_zero_cnt + 1;
+        z_e_tp = new_sub? 1 : (z_e_temp - lead_zero_cnt + 1);
     end else begin
         sum_fraction_tmp = sum_fraction;
-        z_e_tp = z_e_temp - lead_zero_cnt;
+        z_e_tp = new_sub? 0: (z_e_temp - lead_zero_cnt);
     end
 
     //round
